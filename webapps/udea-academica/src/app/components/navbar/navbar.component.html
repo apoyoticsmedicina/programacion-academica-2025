@@ -1,0 +1,33 @@
+<nav class="navbar">
+  <div class="navbar__brand">
+    <img
+      ngSrc="assets/images/Logo+Facultad+de+Medicina-blanco.png"
+      width="320"
+      height="100"
+      alt="Universidad de Antioquia"
+      class="navbar__logo"
+    />
+  </div>
+
+  <div class="navbar__user">
+    <div class="navbar__avatar">
+      <img
+        [src]="
+          user.avatarUrl
+            ? user.avatarUrl
+            : 'https://cdn-icons-png.flaticon.com/512/149/149071.png'
+        "
+        alt="Avatar de {{ user.name }}"
+      />
+    </div>
+    <div class="navbar__info">
+      <div class="navbar__name">{{ user.name }}</div>
+      <div class="navbar__email">{{ user.email }}</div>
+    </div>
+  </div>
+
+  <div class="navbar__actions">
+    <button class="btn" (click)="goToProfile()">Perfil</button>
+    <button class="btn btn--outline" (click)="logout()">Cerrar sesión</button>
+  </div>
+</nav>

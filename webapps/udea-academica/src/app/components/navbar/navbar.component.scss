@@ -1,0 +1,90 @@
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #00802b;
+  padding: 0 1.5rem;
+  height: 60px;
+  color: #fff;
+  margin: 0;
+
+  &__brand {
+    display: flex;
+    align-items: center;
+
+    .navbar__logo {
+      max-height: 40px;
+      width: auto;
+      object-fit: contain;
+      margin-right: 1rem;
+    }
+  }
+
+  &__user {
+    display: flex;
+    align-items: center;
+  }
+
+  /* Contenedor fijo 40×40px */
+  .navbar__avatar {
+    width: 40px !important;
+    height: 40px !important;
+    flex-shrink: 0;
+    overflow: hidden;
+    border-radius: 50%;
+    margin-right: 0.75rem;
+    border: 2px solid #fff;
+
+    img {
+      display: block;
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover !important;
+    }
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+
+    .navbar__name {
+      font-weight: 600;
+      font-size: 0.95rem;
+      line-height: 1;
+    }
+    .navbar__email {
+      font-size: 0.8rem;
+      opacity: 0.85;
+      line-height: 1;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    .btn {
+      background-color: #fff;
+      color: #00802b;
+      border: none;
+      padding: 0.4rem 0.8rem;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+
+      &--outline {
+        background-color: transparent;
+        border: 1px solid #fff;
+        color: #fff;
+        &:hover {
+          background-color: rgba(255, 255, 255, 0.2);
+        }
+      }
+      &:hover {
+        background-color: #e6e6e6;
+      }
+    }
+  }
+}

@@ -1,0 +1,60 @@
+<aside class="sidebar">
+  <nav class="sidebar__nav">
+    <!-- Sección Menú Principal -->
+    <div class="sidebar__section">
+      <h3 class="sidebar__section-title">Menú</h3>
+      <ul class="sidebar__list">
+        <li routerLinkActive="active" [routerLinkActiveOptions]="{ exact:true }">
+          <a routerLink="/dashboard/programas">
+            <span class="icon">📋</span>
+            <span class="label">Programas</span>
+          </a>
+        </li>
+        <li routerLinkActive="active">
+          <a routerLink="/dashboard/cursos">
+            <span class="icon">📚</span>
+            <span class="label">Cursos</span>
+          </a>
+        </li>
+        <li routerLinkActive="active">
+          <a routerLink="/dashboard/cronograma">
+            <span class="icon">📅</span>
+            <span class="label">Cronograma</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Sección Recursos -->
+    <div class="sidebar__section">
+      <h3 class="sidebar__section-title">Recursos</h3>
+      <ul class="sidebar__list">
+        <li routerLinkActive="active">
+          <a routerLink="/dashboard/docentes">
+            <span class="icon">👩‍🏫</span>
+            <span class="label">Docentes</span>
+          </a>
+        </li>
+        <li routerLinkActive="active">
+          <a routerLink="/dashboard/planes">
+            <span class="icon">📝</span>
+            <span class="label">Planes de Estudio</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Sección Ajustes -->
+    <div class="sidebar__section">
+      <h3 class="sidebar__section-title">Ajustes</h3>
+      <ul class="sidebar__list">
+        <li routerLinkActive="active">
+          <a routerLink="/dashboard/perfil">
+            <span class="icon">⚙️</span>
+            <span class="label">Perfil</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+</aside>

@@ -1,0 +1,83 @@
+.sidebar {
+  width: 240px;
+  height: 100vh;
+  background-color: #004d1a;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 1rem;
+  box-sizing: border-box;
+
+  &__brand {
+    display: flex;
+    align-items: center;
+    margin-bottom: 2rem;
+
+    & .sidebar__logo {
+      width: 32px;
+      height: 32px;
+      margin-right: 0.75rem;
+    }
+    & .sidebar__title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin: 0;
+    }
+  }
+
+  &__nav {
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  &__section {
+    margin-bottom: 1.5rem;
+
+    &-title {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      opacity: 0.7;
+      margin-bottom: 0.5rem;
+      padding-left: 0.5rem;
+    }
+  }
+
+  &__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    li {
+      margin-bottom: 0.25rem;
+
+      &.active > a {
+        background-color: #00702f;
+      }
+
+      a {
+        display: flex;
+        align-items: center;
+        padding: 0.6rem 0.8rem;
+        border-radius: 4px;
+        text-decoration: none;
+        color: inherit;
+        transition: background-color 0.2s;
+
+        &:hover {
+          background-color: rgba(255,255,255,0.1);
+        }
+
+        .icon {
+          display: inline-block;
+          width: 1.25rem;
+          text-align: center;
+          margin-right: 0.75rem;
+        }
+
+        .label {
+          font-size: 0.95rem;
+        }
+      }
+    }
+  }
+}

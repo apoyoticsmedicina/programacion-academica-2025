@@ -1,0 +1,44 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;    /* ocupa toda la altura de la ventana */
+  width: 100vw;     /* ocupa todo el ancho de la ventana */
+  margin: 0;        /* sin márgenes extras */
+}
+
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden; /* quita scroll en el dashboard completo */
+
+  &__navbar {
+    flex: 0 0 auto;
+  }
+
+  &__body {
+    flex: 1;
+    display: flex;
+    overflow: hidden; /* quita scroll en la zona body */
+  }
+
+  &__sidebar {
+    flex: 0 0 auto; /* ancho fijo o según tu diseño */
+  }
+
+  &__content {
+    flex: 1;
+    overflow: auto;  /* permite scroll SOLO aquí */
+
+    /* ocultar scrollbar en todos los navegadores */
+    scrollbar-width: none;      /* Firefox */
+    -ms-overflow-style: none;   /* IE 10+ */
+    &::-webkit-scrollbar {
+      display: none;            /* Chrome, Safari, Opera */
+    }
+  }
+
+  &__footer {
+    flex: 0 0 auto;
+  }
+}

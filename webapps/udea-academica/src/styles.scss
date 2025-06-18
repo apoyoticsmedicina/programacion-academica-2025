@@ -1,0 +1,17 @@
+/* 1. Eliminar cualquier scroll a nivel de la ventana */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* 2. Asegurar que el root y el <main> de app.html ocupen el 100% y no hagan scroll */
+app-root,
+app-root main {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
