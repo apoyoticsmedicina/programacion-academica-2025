@@ -1,0 +1,139 @@
+.programas {
+  position: relative; // ①
+  padding: 3rem 1rem 1rem;
+  padding-bottom: 4rem; // deja espacio para el botón
+  height: 100%;
+
+  /* Lista de programas */
+  &__list {
+    list-style: none;
+    margin: 10px;
+    padding: 0;
+
+    & > .programas__item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 1rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      margin-bottom: 0.5rem;
+
+      .programas__type {
+        color: #666;
+        margin-left: 0.5rem;
+        font-size: 0.9rem;
+      }
+
+      .programas__expand-btn {
+        background: none;
+        border: none;
+        font-size: 1rem;
+        cursor: pointer;
+      }
+    }
+
+    & > .programas__plans {
+      list-style: none;
+      margin: 0 0 0.5rem 2rem;
+      padding: 0;
+
+      .programas__no-plans {
+        font-style: italic;
+        color: #999;
+      }
+
+      /* Cursos dentro de cada plan */
+      & .programas__courses {
+        list-style: none;
+        margin: 0.25rem 0 0.5rem 1.5rem;
+        padding: 0;
+
+        li {
+          margin-bottom: 0.25rem;
+          font-size: 0.9rem;
+          color: #333;
+        }
+      }
+    }
+  }
+
+  /* Botón “Agregar Programa” */
+  &__add-btn {
+    position: absolute;
+    top: 1rem;    // espacio desde arriba del componente
+    right: 1rem;  // espacio desde la derecha
+    z-index: 10;
+
+    background-color: #00802b;
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+
+    &:hover {
+      background-color: #006622;
+    }
+  }
+
+  /* Modal simple */
+  .modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal {
+    background: #fff;
+    padding: 2rem;
+    border-radius: 6px;
+    width: 320px;
+
+    h2 {
+      margin-top: 0;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+
+      input,
+      select {
+        width: 100%;
+        padding: 0.5rem;
+        margin-top: 0.25rem;
+        box-sizing: border-box;
+      }
+    }
+
+    .modal__actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+
+      button {
+        padding: 0.4rem 0.8rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      button[type="button"] {
+        background: #ccc;
+      }
+      button[type="submit"] {
+        background: #00802b;
+        color: #fff;
+      }
+    }
+  }
+}

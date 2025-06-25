@@ -1,1 +1,74 @@
-<p>programas works!</p>
+<div class="programas">
+  <button class="programas__add-btn" (click)="openModal()">
+    + Agregar Programa
+  </button>
+
+  <ul class="programas__list">
+    <ng-container *ngFor="let p of programas">
+      <!-- Ítem del programa -->
+      <li class="programas__item">
+        <div>
+          <strong>{{ p.nombre }}</strong>
+          <span class="programas__type">({{ p.tipo }})</span>
+        </div>
+        <button
+          class="programas__expand-btn"
+          (click)="toggleExpand(p)"
+          aria-label="Expandir planes"
+        >
+          {{ p.expanded ? '▼' : '▶' }}
+        </button>
+      </li>
+
+      <!-- Sub-lista de planes + cursos -->
+      <li class="programas__plans" *ngIf="p.expanded">
+        <ng-container *ngIf="p.planes.length; else noPlanes">
+          <ul>
+            <li *ngFor="let plan of p.planes">
+              <!-- encabezado de plan -->
+              <div>
+                Plan v{{ plan.version }}
+                <span *ngIf="plan.activo">(activo)</span>
+              </div>
+              <!-- lista de cursos -->
+              <ul class="programas__courses">
+                <li *ngFor="let c of plan.cursos">
+                  {{ c.codigo }} — {{ c.nombre }}
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </ng-container>
+        <ng-template #noPlanes>
+          <div class="programas__no-plans">
+            No hay planes de estudio vinculados
+          </div>
+        </ng-template>
+      </li>
+    </ng-container>
+  </ul>
+
+  <!-- Modal de creación -->
+  <div class="modal-backdrop" *ngIf="showModal">
+    <div class="modal">
+      <h2>Nuevo Programa</h2>
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <label>
+          Nombre
+          <input formControlName="nombre" />
+        </label>
+        <label>
+          Tipo
+          <select formControlName="tipo">
+            <option value="pregrado">Pregrado</option>
+            <option value="posgrado">Posgrado</option>
+          </select>
+        </label>
+        <div class="modal__actions">
+          <button type="button" (click)="closeModal()">Cancelar</button>
+          <button type="submit" [disabled]="form.invalid">Crear</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

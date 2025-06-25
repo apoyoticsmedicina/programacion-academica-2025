@@ -1,0 +1,110 @@
+// Proyecto: Programación Académica UdeA
+// Esquema compatible con dbdiagram.io
+
+Table usuarios {
+  id               int        [pk, increment]
+  nombre           varchar
+  correo           varchar    [unique]
+  contrasena       varchar
+  rol              varchar
+  is_active        boolean
+  is_root          boolean
+  fecha_creacion   timestamp
+}
+
+Table programas_academicos {
+  id      int     [pk, increment]
+  nombre  varchar
+  tipo    varchar  // e.g. "pregrado" | "posgrado"
+}
+
+Table planes_estudio {
+  id              int     [pk, increment]
+  programa_id     int     [ref: > programas_academicos.id]
+  version         varchar
+  activo          boolean
+}
+
+Table registro_plan_estudio {
+  id               int     [pk, increment]
+  plan_estudio_id  int     [ref: > planes_estudio.id]
+  año              int
+  periodo          varchar  // e.g. "I", "II"
+}
+
+Table cursos {
+  id             int      [pk, increment]
+  codigo         varchar  [unique]
+  nombre         varchar
+  fecha_inicio   date
+  fecha_fin      date
+  habilitado     boolean
+  es_electiva    boolean  [default: false]
+  HTI            int
+  HTC            int
+  HTE            int
+}
+
+Table plan_estudio_cursos {
+  plan_estudio_id  int      [ref: > planes_estudio.id]
+  curso_id         int      [ref: > cursos.id]
+  obligatorio      boolean  [default: true]
+  es_electiva      boolean  [default: false]
+  orden            int
+  indexes {
+    (plan_estudio_id, curso_id) [pk]
+  }
+}
+
+Table docentes {
+  id            int     [pk, increment]
+  documento     varchar [unique]
+  nombres       varchar
+  apellidos     varchar
+  vinculacion   varchar
+  dedicacion    varchar
+  departamento  varchar
+  seccion       varchar
+  activo        boolean
+}
+
+Table cursos_docentes {
+  id            int      [pk, increment]
+  docente_id    int      [ref: > docentes.id]
+  curso_id      int      [ref: > cursos.id]
+  porcentaje    numeric
+  frecuencia    varchar
+  observaciones text
+}
+
+Table cronogramas {
+  id              int     [pk, increment]
+  curso_id        int     [ref: > cursos.id]
+  fecha           date
+  hora_inicio     time
+  hora_fin        time
+  contenido       text
+  metodologia     text
+  tipo_actividad  varchar
+  subgrupo        varchar
+}
+
+Table programa_curso_contenido {
+  id                      int    [pk, increment]
+  curso_id                int    [ref: > cursos.id]
+  descripcion_general     text
+  informacion_especifica  text
+  metodologia             text
+  profesores_autores      text
+  acta_aprobacion         text
+}
+
+Table solicitudes_cambio {
+  id                  int       [pk, increment]
+  curso_id            int       [ref: > cursos.id]
+  tipo_solicitud      varchar   // "general"|"especifica"|"metodologia"|"profesores"
+  estado              varchar   // "Pendiente"|"Aprobado"|"Rechazado"
+  motivo_rechazo      text
+  fecha_creacion      timestamp
+  fecha_actualizacion timestamp
+}

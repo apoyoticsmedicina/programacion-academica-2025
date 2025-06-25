@@ -1,0 +1,41 @@
+<div class="cursos">
+  <button class="cursos__add-btn" (click)="openModal()">+ Agregar Curso</button>
+
+  <ul class="cursos__list">
+    <li *ngFor="let c of cursos" class="cursos__item">
+      <div class="cursos__info">
+        <strong>{{ c.codigo }}</strong> — {{ c.nombre }}
+        <span class="cursos__badge" [class.electiva]="c.esElectiva">
+          {{ c.esElectiva ? 'Electiva' : 'Obligatorio' }}
+        </span>
+      </div>
+      <div class="cursos__meta">
+        {{ c.fechaInicio }} → {{ c.fechaFin }}
+      </div>
+    </li>
+  </ul>
+
+  <div class="modal-backdrop" *ngIf="showModal">
+    <div class="modal cursos__modal">
+      <h2>Crear Curso</h2>
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <label>
+          Código
+          <input formControlName="codigo" />
+        </label>
+        <label>
+          Nombre
+          <input formControlName="nombre" />
+        </label>
+        <label>
+          <input type="checkbox" formControlName="esElectiva" />
+          ¿Es electiva?
+        </label>
+        <div class="modal__actions">
+          <button type="button" (click)="closeModal()">Cancelar</button>
+          <button type="submit" [disabled]="form.invalid">Crear</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
