@@ -5,7 +5,7 @@
 
   <ul class="programas__list">
     <ng-container *ngFor="let p of programas">
-      <!-- Ítem del programa -->
+      <!-- Programa -->
       <li class="programas__item">
         <div>
           <strong>{{ p.nombre }}</strong>
@@ -16,24 +16,31 @@
           (click)="toggleExpand(p)"
           aria-label="Expandir planes"
         >
-          {{ p.expanded ? '▼' : '▶' }}
+          {{ p.expanded ? "▼" : "▶" }}
         </button>
       </li>
 
-      <!-- Sub-lista de planes + cursos -->
+      <!-- Planes + Cursos -->
       <li class="programas__plans" *ngIf="p.expanded">
         <ng-container *ngIf="p.planes.length; else noPlanes">
           <ul>
             <li *ngFor="let plan of p.planes">
-              <!-- encabezado de plan -->
               <div>
                 Plan v{{ plan.version }}
                 <span *ngIf="plan.activo">(activo)</span>
               </div>
-              <!-- lista de cursos -->
               <ul class="programas__courses">
-                <li *ngFor="let c of plan.cursos">
-                  {{ c.codigo }} — {{ c.nombre }}
+                <li *ngFor="let assoc of plan.cursos" class="programas__course">
+                  <span class="course__order">{{ assoc.orden }}.</span>
+                  <span class="course__code">{{ assoc.curso.codigo }}</span> —
+                  <span class="course__name">{{ assoc.curso.nombre }}</span>
+                  <span
+                    class="course__badge"
+                    [class.electiva]="assoc.esElectiva"
+                    [class.obligatorio]="!assoc.esElectiva"
+                  >
+                    {{ assoc.esElectiva ? "Electiva" : "Obligatorio" }}
+                  </span>
                 </li>
               </ul>
             </li>

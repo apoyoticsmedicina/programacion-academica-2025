@@ -6,12 +6,12 @@ import { Observable } from 'rxjs';
 import {
   PlanEstudio,
   CreatePlanEstudioDTO,
-  UpdatePlanEstudioDTO
+  UpdatePlanEstudioDTO,
 } from '../dto/planes-estudio.dto';
 
 @Injectable({ providedIn: 'root' })
 export class PlanEstudioService {
-  private baseUrl = '/api/planes-estudio';
+  private baseUrl = 'http://localhost:3000/planes-estudio';
 
   constructor(private http: HttpClient) {}
 
@@ -31,7 +31,9 @@ export class PlanEstudioService {
   }
 
   /** Opcional: si lo necesitas, filtrado por programa */
-  getByPrograma(programaId: number): Observable<PlanEstudio[]> {
-    return this.http.get<PlanEstudio[]>(`${this.baseUrl}?programaId=${programaId}`);
+  getByPrograma(programaId: number) {
+    return this.http.get<PlanEstudio[]>(
+      `${this.baseUrl}?programaId=${programaId}`
+    );
   }
 }

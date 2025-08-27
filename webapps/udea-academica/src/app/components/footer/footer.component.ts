@@ -1,5 +1,5 @@
 import { Component, OnDestroy } from '@angular/core';
-import { CommonModule }         from '@angular/common';                   // ←
+import { CommonModule }         from '@angular/common';                   
 import { trigger, transition, style, animate } from '@angular/animations';
 import { Subscription }        from 'rxjs';
 import { FooterToggleService } from '../../services/footer-toggle.service';
@@ -8,7 +8,7 @@ import { FooterToggleService } from '../../services/footer-toggle.service';
   selector: 'app-footer',
   standalone: true,
   imports: [
-    CommonModule                  // ← aquí para que *ngIf funcione
+    CommonModule                  
   ],
   templateUrl: './footer.component.html',
   styleUrls:   ['./footer.component.scss'],

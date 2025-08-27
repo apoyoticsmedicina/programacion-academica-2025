@@ -1,26 +1,54 @@
-/* src/app/components/cursos/cursos.component.scss */
+// src/app/components/cursos/cursos.component.scss
+
+@use "sass:color";
+
 .cursos {
   position: relative;
   padding: 1rem;
 
-  &__add-btn {
+  /* Contenedor de los botones */
+  &__actions {
     position: absolute;
     top: 1rem;
     right: 1rem;
+    display: flex;
+    gap: 0.5rem;
+    z-index: 10; /* para que quede por encima de la lista */
+  }
+
+  /* Estilos comunes para ambos botones */
+  &__add-btn,
+  &__link-btn {
     background: #00802b;
     color: #fff;
     padding: 0.5rem 1rem;
     border: none;
     border-radius: 4px;
     cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.2s;
   }
 
+  /* Botón secundario con color distinto */
+  &__link-btn {
+    background: #005a1f;
+  }
+
+  /* Hover usando color.adjust */
+  &__add-btn:hover {
+    background: color.adjust(#00802b, $lightness: -10%);
+  }
+  &__link-btn:hover {
+    background: color.adjust(#005a1f, $lightness: -10%);
+  }
+
+  /* Lista de cursos, desplazada hacia abajo para no tapar los botones */
   &__list {
     list-style: none;
     padding: 0;
     margin-top: 3rem;
 
-    & > .cursos__item {
+    > .cursos__item {
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -31,36 +59,39 @@
     }
   }
 
+  /* Información del curso */
   &__info {
     display: flex;
     align-items: center;
     gap: 1rem;
 
-    .cursos__badge {
-      background: #e0f7e9;
-      color: #00802b;
+    .badge.inactivo {
+      background: #f8d7da;
+      color: #721c24;
       padding: 0.2rem 0.5rem;
       border-radius: 3px;
       font-size: 0.8rem;
-
-      &.electiva {
-        background: #fff4e0;
-        color: #8a4500;
-      }
     }
   }
 
+  /* Meta (HTI, HTC, HTE) */
   &__meta {
     font-size: 0.85rem;
     color: #666;
   }
 }
 
-/* Modal (reusa estilos) */
+/* Reutiliza el backdrop y modal ya existentes */
 .modal-backdrop {
-  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.4);
-  display: flex; align-items: center; justify-content: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .modal {
@@ -69,14 +100,25 @@
   border-radius: 6px;
   width: 320px;
 
-  h2 { margin-top: 0; }
+  h2 {
+    margin-top: 0;
+  }
 
   label {
     display: block;
     margin-bottom: 1rem;
 
-    input[type="text"], input[type="checkbox"] {
+    input[type="text"],
+    input[type="number"],
+    select {
+      display: block;
       margin-top: 0.5rem;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    input[type="checkbox"] {
+      margin-left: 0.5rem;
     }
   }
 
@@ -89,9 +131,15 @@
       padding: 0.4rem 0.8rem;
       border: none;
       border-radius: 4px;
+      cursor: pointer;
     }
 
-    button[type="button"] { background: #ccc; }
-    button[type="submit"] { background: #00802b; color: #fff; }
+    button[type="button"] {
+      background: #ccc;
+    }
+    button[type="submit"] {
+      background: #00802b;
+      color: #fff;
+    }
   }
 }

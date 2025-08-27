@@ -4,18 +4,19 @@ import {
   ReactiveFormsModule,
   FormBuilder,
   FormGroup,
-  Validators
+  Validators,
 } from '@angular/forms';
+import { finalize } from 'rxjs/operators';
+
 // DTOs
 import {
   PlanEstudio,
   CreatePlanEstudioDTO,
-  UpdatePlanEstudioDTO
+  UpdatePlanEstudioDTO,
 } from '../../dto/planes-estudio.dto';
+
 import { PlanEstudioService } from '../../services/plan-estudio.service';
-import {
-  ProgramaAcademico
-} from '../../dto/programas.dto';
+import { ProgramaAcademico } from '../../dto/programas.dto';
 import { ProgramaService } from '../../services/programa.service';
 
 @Component({
@@ -23,14 +24,16 @@ import { ProgramaService } from '../../services/programa.service';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './planes-estudio.component.html',
-  styleUrls: ['./planes-estudio.component.scss']
+  styleUrls: ['./planes-estudio.component.scss'],
 })
+
 export class PlanesEstudioComponent implements OnInit {
   planes: PlanEstudio[] = [];
   programas: ProgramaAcademico[] = [];
 
   showModal = false;
   editingPlan: PlanEstudio | null = null;
+  loading = false;
 
   form: FormGroup;
 
@@ -41,7 +44,7 @@ export class PlanesEstudioComponent implements OnInit {
   ) {
     this.form = this.fb.group({
       programaId: [null, Validators.required],
-      version: ['', Validators.required]
+      version: ['', Validators.required],
     });
   }
 
@@ -51,32 +54,27 @@ export class PlanesEstudioComponent implements OnInit {
   }
 
   loadProgramas() {
-    // ---------- PETICIÓN REAL (comentada) ----------
-    // this.programaService
-    //   .getAll()
-    //   .subscribe(progs => (this.programas = progs));
-
-    // ----------- DATOS DUMMY ------------
-    this.programas = [
-      { id: 1, nombre: 'Medicina', tipo: 'pregrado' },
-      { id: 2, nombre: 'Instrumentación Quirúrgica', tipo: 'pregrado' },
-      { id: 3, nombre: 'Técnica Profesional en Atención Prehospitalaria', tipo: 'pregrado' },
-      { id: 4, nombre: 'Maestría en Salud Pública', tipo: 'posgrado' }
-    ];
+    this.loading = true;
+    this.programaService.getAll() 
+      .pipe(finalize(() => (this.loading = false)))
+      .subscribe({
+        next: progs => {
+          this.programas = progs;
+          console.log('programas cargados:', progs);
+        },
+        error: err => console.error('Error cargando programas', err)
+      });
   }
 
   loadPlanes() {
-    // ---------- PETICIÓN REAL (comentada) ----------
-    // this.planService
-    //   .getAll()
-    //   .subscribe(pls => (this.planes = pls));
-
-    // ----------- DATOS DUMMY ------------
-    this.planes = [
-      { id: 1, programaId: 1, version: '2022-I', activo: true },
-      { id: 2, programaId: 2, version: '2023-I', activo: true },
-      { id: 3, programaId: 1, version: '2021-II', activo: false }
-    ];
+    this.loading = true;
+    this.planService
+      .getAll()
+      .pipe(finalize(() => (this.loading = false)))
+      .subscribe({
+        next: pls => (this.planes = pls),
+        error: err => console.error('Error cargando planes', err)
+      });
   }
 
   openModal(plan?: PlanEstudio) {
@@ -85,7 +83,7 @@ export class PlanesEstudioComponent implements OnInit {
       this.editingPlan = plan;
       this.form.setValue({
         programaId: plan.programaId,
-        version: plan.version
+        version: plan.version,
       });
     } else {
       this.editingPlan = null;
@@ -105,44 +103,50 @@ export class PlanesEstudioComponent implements OnInit {
       version: this.form.value.version
     };
 
+    this.loading = true;
+
     if (this.editingPlan) {
-      // ---------- BACKEND REAL (comentado) ----------
-      // const updateDto: UpdatePlanEstudioDTO = { activo: false };
-      // this.planService.update(this.editingPlan.id, updateDto).subscribe(() => {
-      //   this.planService.create(dto).subscribe(() => {
-      //     this.closeModal();
-      //     this.loadPlanes();
-      //   });
-      // });
-
-      // Simulación de edición en dummy:
-      const idx = this.planes.findIndex(p => p.id === this.editingPlan!.id);
-      if (idx > -1) this.planes[idx].activo = false;
-      const newId = Math.max(...this.planes.map(p => p.id)) + 1;
-      this.planes.push({ id: newId, ...dto, activo: true });
-      this.closeModal();
-
+      // Desactivar el plan actual y luego crear uno nuevo
+      const updateDto: UpdatePlanEstudioDTO = { activo: false };
+      this.planService
+        .update(this.editingPlan.id, updateDto)
+        .pipe(
+          finalize(() => {
+            // Una vez desactivado, creamos el nuevo
+            this.planService
+              .create(dto)
+              .pipe(finalize(() => (this.loading = false)))
+              .subscribe({
+                next: () => {
+                  this.closeModal();
+                  this.loadPlanes();
+                },
+                error: err => console.error('Error creando plan', err)
+              });
+          })
+        )
+        .subscribe({
+          next: () => {},
+          error: err => console.error('Error desactivando plan', err)
+        });
     } else {
-      // ---------- BACKEND REAL (comentado) ----------
-      // this.planService.create(dto).subscribe(() => {
-      //   this.closeModal();
-      //   this.loadPlanes();
-      // });
-
-      // Simulación de creación en dummy:
-      const newId = this.planes.length
-        ? Math.max(...this.planes.map(p => p.id)) + 1
-        : 1;
-      this.planes.push({ id: newId, ...dto, activo: true });
-      this.closeModal();
+      // Solo crear un nuevo plan
+      this.planService
+        .create(dto)
+        .pipe(finalize(() => (this.loading = false)))
+        .subscribe({
+          next: () => {
+            this.closeModal();
+            this.loadPlanes();
+          },
+          error: err => console.error('Error creando plan', err)
+        });
     }
-
-    // refresca la tabla (en real llamaría loadPlanes())
   }
 
   /** Encuentra nombre de programa por su id */
   getProgramaNombre(id: number): string {
-    const pr = this.programas.find(p => p.id === id);
+    const pr = this.programas.find((p) => p.id === id);
     return pr ? pr.nombre : '—';
   }
 }

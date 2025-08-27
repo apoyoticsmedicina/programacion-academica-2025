@@ -17,6 +17,7 @@ import { FooterComponent } from '../../components/footer/footer.component';
     FooterComponent
   ],
   templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.scss']  // ← corrige a plural
+  styleUrls: ['./dashboard.component.scss'] 
 })
+
 export class DashboardComponent {}

@@ -1,13 +1,12 @@
 .programas {
-  position: relative; // ①
+  position: relative;
   padding: 3rem 1rem 1rem;
-  padding-bottom: 4rem; // deja espacio para el botón
+  padding-bottom: 4rem;
   height: 100%;
 
-  /* Lista de programas */
   &__list {
     list-style: none;
-    margin: 10px;
+    margin: 0;
     padding: 0;
 
     & > .programas__item {
@@ -34,7 +33,6 @@
     }
 
     & > .programas__plans {
-      list-style: none;
       margin: 0 0 0.5rem 2rem;
       padding: 0;
 
@@ -43,28 +41,46 @@
         color: #999;
       }
 
-      /* Cursos dentro de cada plan */
       & .programas__courses {
         list-style: none;
         margin: 0.25rem 0 0.5rem 1.5rem;
         padding: 0;
 
-        li {
+        .programas__course {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
           margin-bottom: 0.25rem;
           font-size: 0.9rem;
           color: #333;
+        }
+
+        .course__order {
+          font-weight: bold;
+        }
+        .course__badge {
+          margin-left: auto;
+          padding: 0.2rem 0.5rem;
+          border-radius: 3px;
+          font-size: 0.8rem;
+        }
+        .course__badge.electiva {
+          background: #fff4e0;
+          color: #8a4500;
+        }
+        .course__badge.obligatorio {
+          background: #e0f7e9;
+          color: #00802b;
         }
       }
     }
   }
 
-  /* Botón “Agregar Programa” */
   &__add-btn {
     position: absolute;
-    top: 1rem;    // espacio desde arriba del componente
-    right: 1rem;  // espacio desde la derecha
+    top: 1rem;
+    right: 1rem;
     z-index: 10;
-
     background-color: #00802b;
     color: #fff;
     border: none;
@@ -78,17 +94,12 @@
     }
   }
 
-  /* Modal simple */
+  /* Modal */
   .modal-backdrop {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.4);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.4);
+    display: flex; align-items: center; justify-content: center;
   }
 
   .modal {
@@ -97,17 +108,14 @@
     border-radius: 6px;
     width: 320px;
 
-    h2 {
-      margin-top: 0;
-    }
+    h2 { margin-top: 0; }
 
     label {
       display: block;
       margin-bottom: 1rem;
       font-size: 0.9rem;
 
-      input,
-      select {
+      input, select {
         width: 100%;
         padding: 0.5rem;
         margin-top: 0.25rem;
@@ -126,14 +134,8 @@
         border-radius: 4px;
         cursor: pointer;
       }
-
-      button[type="button"] {
-        background: #ccc;
-      }
-      button[type="submit"] {
-        background: #00802b;
-        color: #fff;
-      }
+      button[type="button"] { background: #ccc; }
+      button[type="submit"] { background: #00802b; color: #fff; }
     }
   }
 }

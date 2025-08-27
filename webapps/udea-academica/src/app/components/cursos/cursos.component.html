@@ -1,16 +1,24 @@
+<!-- src/app/components/cursos/cursos.component.html -->
+
 <div class="cursos">
-  <button class="cursos__add-btn" (click)="openModal()">+ Agregar Curso</button>
+  <div class="cursos__actions">
+    <button class="cursos__add-btn" (click)="openModal()">
+      + Agregar Curso
+    </button>
+    <button class="cursos__link-btn" (click)="openLinkModal()">
+      ↔ Vincular a Plan
+    </button>
+  </div>
 
   <ul class="cursos__list">
     <li *ngFor="let c of cursos" class="cursos__item">
       <div class="cursos__info">
         <strong>{{ c.codigo }}</strong> — {{ c.nombre }}
-        <span class="cursos__badge" [class.electiva]="c.esElectiva">
-          {{ c.esElectiva ? 'Electiva' : 'Obligatorio' }}
-        </span>
+        <em>({{ c.nivel }})</em>
+        <span *ngIf="!c.habilitado" class="badge inactivo">Inhabilitado</span>
       </div>
       <div class="cursos__meta">
-        {{ c.fechaInicio }} → {{ c.fechaFin }}
+        HTI: {{ c.HTI }} — HTC: {{ c.HTC }} — HTE: {{ c.HTE }}
       </div>
     </li>
   </ul>
@@ -23,17 +31,88 @@
           Código
           <input formControlName="codigo" />
         </label>
+
         <label>
           Nombre
           <input formControlName="nombre" />
         </label>
+
         <label>
-          <input type="checkbox" formControlName="esElectiva" />
-          ¿Es electiva?
+          Nivel
+          <input formControlName="nivel" />
         </label>
+
+        <label>
+          <input type="checkbox" formControlName="habilitado" />
+          Habilitado
+        </label>
+
+        <label>
+          HTI
+          <input type="number" formControlName="HTI" />
+        </label>
+
+        <label>
+          HTC
+          <input type="number" formControlName="HTC" />
+        </label>
+
+        <label>
+          HTE
+          <input type="number" formControlName="HTE" />
+        </label>
+
         <div class="modal__actions">
           <button type="button" (click)="closeModal()">Cancelar</button>
           <button type="submit" [disabled]="form.invalid">Crear</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="modal-backdrop" *ngIf="showLink">
+    <div class="modal cursos__link-modal">
+      <h2>Vincular Curso a Plan de Estudio</h2>
+      <form [formGroup]="linkForm" (ngSubmit)="submitLink()">
+        <label>
+          Curso:
+          <select formControlName="cursoId">
+            <option [ngValue]="null">— Seleccione —</option>
+            <option *ngFor="let c of cursos" [ngValue]="c.id">
+              {{ c.codigo }} — {{ c.nombre }}
+            </option>
+          </select>
+        </label>
+
+        <label>
+          Plan de Estudio:
+          <select formControlName="planEstudioId">
+            <option [ngValue]="null">— Seleccione —</option>
+            <option *ngFor="let p of planes" [ngValue]="p.id">
+              {{ p.version }} ({{ getProgramaNombre(p.programaId) }})
+            </option>
+          </select>
+        </label>
+
+        <!-- Nuevo campo: ¿Será Electiva dentro de este Plan? -->
+        <label>
+          <input type="checkbox" formControlName="esElectiva" />
+          ¿Electiva en este Plan?
+        </label>
+
+        <!-- Nuevo campo: Orden de aparición en el Plan -->
+        <label>
+          Orden:
+          <input
+            type="number"
+            formControlName="orden"
+            min="1"
+            placeholder="1"
+          />
+        </label>
+
+        <div class="modal__actions">
+          <button type="button" (click)="closeLinkModal()">Cancelar</button>
+          <button type="submit" [disabled]="linkForm.invalid">Vincular</button>
         </div>
       </form>
     </div>

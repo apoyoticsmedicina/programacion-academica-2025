@@ -3,12 +3,12 @@
 export interface ProgramaAcademico {
   id: number;
   nombre: string;
-  tipo: 'pregrado'|'posgrado';
-  expanded?: boolean;
-  planes?: { version: string; activo: boolean }[];
+  tipo: 'pregrado' | 'posgrado';
 }
 
 export interface CreateProgramaDTO {
   nombre: string;
   tipo: ProgramaAcademico['tipo'];
 }
+
+export type UpdateProgramaDTO = Partial<CreateProgramaDTO>;

@@ -1,25 +1,33 @@
-// src/app/services/programa.service.ts
-
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { ProgramaAcademico, CreateProgramaDTO } from '../dto/programas.dto';
+import { ProgramaAcademico, CreateProgramaDTO, UpdateProgramaDTO } from '../dto/programas.dto';
 import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProgramaService {
-  private readonly baseUrl = '/api/programas';  // ajusta según tu endpoint real
+  private base = 'http://localhost:3000/programas';
 
   constructor(private http: HttpClient) {}
 
-  /** Trae todos los programas académicos */
   getAll(): Observable<ProgramaAcademico[]> {
-    return this.http.get<ProgramaAcademico[]>(this.baseUrl);
+    return this.http.get<ProgramaAcademico[]>(this.base);
   }
 
-  /** Crea un nuevo programa */
+  getById(id: number): Observable<ProgramaAcademico> {
+    return this.http.get<ProgramaAcademico>(`${this.base}/${id}`);
+  }
+
   create(dto: CreateProgramaDTO): Observable<ProgramaAcademico> {
-    return this.http.post<ProgramaAcademico>(this.baseUrl, dto);
+    return this.http.post<ProgramaAcademico>(this.base, dto);
+  }
+
+  update(id: number, dto: UpdateProgramaDTO): Observable<ProgramaAcademico> {
+    return this.http.patch<ProgramaAcademico>(`${this.base}/${id}`, dto);
+  }
+
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/${id}`);
   }
 }
