@@ -1,3 +1,4 @@
+// src/controllers/docenteController.ts
 import { Request, Response, NextFunction } from 'express';
 import { AppDataSource } from '../config/data-source';
 import { Docente } from '../entities/Docente';
@@ -11,8 +12,36 @@ export class DocenteController {
     this.svc = new DocenteService(repo);
   }
 
-  getAll = async (_: Request, res: Response, next: NextFunction) => {
-    try { res.json(await this.svc.getAll()); } catch (err) { next(err); }
+  getAll = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const {
+        page,
+        pageSize,
+        q,
+        activo,
+        unidad_academica,
+        departamento,
+        vinculacion,
+        dedicacion,
+        tipo_documento,          // 👈 NUEVO
+      } = req.query as any;
+
+      const data = await this.svc.getAll({
+        page,
+        pageSize,
+        q,
+        activo,
+        unidad_academica,
+        departamento,
+        vinculacion,
+        dedicacion,
+        tipo_documento,          // 👈 NUEVO
+      });
+
+      res.json(data);
+    } catch (err) {
+      next(err);
+    }
   };
 
   getById = async (req: Request, res: Response, next: NextFunction) => {
@@ -39,7 +68,9 @@ export class DocenteController {
   };
 
   remove = async (req: Request, res: Response, next: NextFunction) => {
-    try { await this.svc.remove(+req.params.id); res.sendStatus(204); }
-    catch (err) { next(err); }
+    try {
+      await this.svc.remove(+req.params.id);
+      res.sendStatus(204);
+    } catch (err) { next(err); }
   };
 }

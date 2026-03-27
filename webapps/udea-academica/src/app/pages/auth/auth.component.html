@@ -1,0 +1,61 @@
+<div class="login">
+  <!-- Si estamos procesando el callback, mostramos solo el texto -->
+  <ng-container *ngIf="processingCallback; else loginTpl">
+    <p class="login__processing">Procesando autenticación...</p>
+  </ng-container>
+
+  <ng-template #loginTpl>
+    <div class="login__card">
+      <header class="login__header">
+        <h1 class="login__title">Programación académica</h1>
+        <p class="login__subtitle">
+          Inicia sesión con tu correo institucional
+          <strong>&#64;udea.edu.co</strong>
+        </p>
+      </header>
+
+      <main class="login__content">
+
+        <div class="login__dev" *ngIf="devEnabled">
+          <div class="login__dev-title">Acceso DEV (pruebas)</div>
+
+          <div class="login__dev-row">
+            <input type="email" class="login__dev-input" placeholder="correo@udea.edu.co" [(ngModel)]="devEmail"
+              [disabled]="loading" />
+            <button class="login__btn login__btn--dev" type="button" (click)="loginDevByEmail()"
+              [disabled]="loading || !devEmail?.trim()">
+              Entrar (DEV)
+            </button>
+          </div>
+
+          <div class="login__dev-hint">
+            Solo habilitado en ambiente DEV.
+          </div>
+        </div>
+
+        <button class="login__btn login__btn--google" (click)="loginWithGoogle()" [disabled]="loading">
+          <span class="login__btn-icon">
+            <span class="login__icon-circle">G</span>
+          </span>
+
+          <span class="login__btn-text" *ngIf="!loading">
+            Continuar con Google
+          </span>
+          <span class="login__btn-text" *ngIf="loading"> Redirigiendo… </span>
+        </button>
+
+        <p class="login__hint">
+          Solo se permiten cuentas de Google de la Universidad de Antioquia.
+        </p>
+
+        <p *ngIf="error" class="login__error">
+          {{ error }}
+        </p>
+      </main>
+    </div>
+
+    <footer class="login__footer">
+      <span>Facultad de Medicina · Universidad de Antioquia</span>
+    </footer>
+  </ng-template>
+</div>

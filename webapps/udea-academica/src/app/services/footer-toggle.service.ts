@@ -3,7 +3,7 @@ import { BehaviorSubject } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class FooterToggleService {
-  private _visible$ = new BehaviorSubject<boolean>(true);
+  private _visible$ = new BehaviorSubject<boolean>(false);
   /** Observable público para suscribirse */
   readonly visible$ = this._visible$.asObservable();
 
@@ -22,3 +22,4 @@ export class FooterToggleService {
     this._visible$.next(v);
   }
 }
+

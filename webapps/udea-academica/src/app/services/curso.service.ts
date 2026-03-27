@@ -4,22 +4,25 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Curso, CreateCursoDTO, UpdateCursoDTO } from '../dto/cursos.dto';
 import { Observable } from 'rxjs';
+import { environment } from '@env/environment';
 
 @Injectable({ providedIn: 'root' })
 export class CursoService {
-  private base = 'http://localhost:3000/cursos';
+  // 👇 base tomada del environment
+  private readonly base = `${environment.apiBaseUrl}/cursos`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
-  getAll(): Observable<Curso[]> {
-    return this.http.get<Curso[]>(this.base);
+  getAll(): Observable<Curso[] | any> {
+    return this.http.get<Curso[] | any>(this.base);
   }
 
   getById(id: number): Observable<Curso> {
     return this.http.get<Curso>(`${this.base}/${id}`);
   }
 
-  getByPlan(planId: number) {
+  getByPlan(planId: number): Observable<Curso[]> {
+    // mantiene el contrato actual con ?planId=
     return this.http.get<Curso[]>(`${this.base}?planId=${planId}`);
   }
 

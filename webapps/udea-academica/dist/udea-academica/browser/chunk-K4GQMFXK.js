@@ -1,0 +1,1 @@
+var t={production:!0,name:"prod",apiBaseUrl:"http://localhost:3000",backendUrl:"http://localhost:3000",auth:{popupCallbackPath:"/auth/popup-callback",storageKeyPrefix:"udea-academica"}};export{t as a};

@@ -1,4 +1,3 @@
-// src/controllers/CursoController.ts
 import { Request, Response, NextFunction } from "express";
 import { AppDataSource } from "../config/data-source";
 import { Curso } from "../entities/Curso";
@@ -15,16 +14,17 @@ export class CursoController {
   getAll = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const planId = req.query.planId ? Number(req.query.planId) : undefined;
-      if (planId) {
-        const cursos = await this.svc.findByPlan(planId);
-        return res.json(cursos);
-      }
-      const all = await this.svc.getAll();
-      res.json(all);
+      const q = (req.query.q as string) || undefined;
+
+      // Ahora el service ya maneja planId internamente.
+      const cursos = await this.svc.getAll({ planId, q });
+
+      return res.json(cursos);
     } catch (err) {
       next(err);
     }
   };
+
 
   getById = async (req: Request, res: Response, next: NextFunction) => {
     try {

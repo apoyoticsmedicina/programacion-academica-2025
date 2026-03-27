@@ -1,1 +1,163 @@
-<p>docentes works!</p>
+<div class="docentes">
+  <header class="docentes__header">
+    <h2>Docentes</h2>
+    <div class="docentes__actions">
+      <input type="search" class="input" placeholder="Buscar por nombre, documento, unidad, correos…" [(ngModel)]="q"
+        (ngModelChange)="applyFilter()" />
+      <button class="btn btn--primary" (click)="openCreate()">+ Nuevo docente</button>
+    </div>
+  </header>
+
+  <!-- Lista -->
+  <section class="docentes__list-wrapper">
+    <div class="state" *ngIf="loading">Cargando docentes…</div>
+    <div class="state" *ngIf="!loading && !filtered.length">No hay docentes.</div>
+
+    <table class="docentes__table" *ngIf="!loading && filtered.length">
+      <thead>
+        <tr>
+          <th>Tipo doc.</th>
+          <th>Documento</th>
+          <th>Nombres</th>
+          <th>Apellidos</th>
+          <th>Vinculación</th>
+          <th>Dedicación</th>
+          <th>Departamento</th>
+          <th>Unidad académica</th>
+          <th>Correo inst.</th>
+          <th>Correo personal</th>
+          <th>Estado</th>
+          <th class="col-actions">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let d of filtered; trackBy: trackById">
+          <td>{{ d.tipo_documento || '—' }}</td>
+          <td>{{ d.documento }}</td>
+          <td>{{ d.nombres }}</td>
+          <td>{{ d.apellidos }}</td>
+          <td>{{ d.vinculacion || '—' }}</td>
+          <td>{{ d.dedicacion || '—' }}</td>
+          <td>{{ d.departamento || '—' }}</td>
+          <td>{{ d.unidad_academica || '—' }}</td>
+          <td>{{ d.correo_institucional || '—' }}</td>
+          <td>{{ d.correo_personal || '—' }}</td>
+          <td>
+            <span class="badge" [class.badge--inactive]="!d.activo">
+              {{ d.activo ? 'Activo' : 'Inactivo' }}
+            </span>
+          </td>
+          <td class="col-actions">
+            <button class="btn btn--ghost" (click)="openEdit(d)">Editar</button>
+            <button class="btn btn--ghost" (click)="toggleActivo(d)">
+              {{ d.activo ? 'Desactivar' : 'Activar' }}
+            </button>
+            <button class="btn btn--danger" (click)="remove(d)" [disabled]="deleting">
+              Eliminar
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Modal -->
+  <div class="modal-backdrop" *ngIf="modalOpen" role="dialog" aria-modal="true">
+    <div class="modal">
+      <h3>{{ editingId === null ? 'Nuevo docente' : 'Editar docente' }}</h3>
+
+      <form [formGroup]="form" (ngSubmit)="save()">
+        <div class="grid">
+
+          <label class="field">
+            <span class="field__label">Tipo de documento</span>
+            <select class="input" formControlName="tipo_documento">
+              <option value="">Seleccione tipo…</option>
+              <option value="Cédula de ciudadanía">Cédula de ciudadanía</option>
+              <option value="Cédula de extranjería">Cédula de extranjería</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span class="field__label">Documento</span>
+            <input class="input" type="text" formControlName="documento" />
+          </label>
+
+          <label class="field">
+            <span class="field__label">Nombres</span>
+            <input class="input" type="text" formControlName="nombres" />
+          </label>
+
+          <label class="field">
+            <span class="field__label">Apellidos</span>
+            <input class="input" type="text" formControlName="apellidos" />
+          </label>
+
+          <!-- Vinculación -->
+          <label class="field">
+            <span class="field__label">Vinculación</span>
+            <select class="input" formControlName="vinculacion">
+              <option value="">Seleccione una vinculación…</option>
+              <option *ngFor="let v of vinculaciones" [value]="v">
+                {{ v | titlecase }}
+              </option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span class="field__label">Dedicación</span>
+            <select class="input" formControlName="dedicacion" [disabled]="!dedicacionesDisponibles.length">
+              <option value="">
+                {{
+                    dedicacionesDisponibles.length
+                      ? 'Seleccione una dedicación…'
+                      : 'Seleccione primero la vinculación'
+                }}
+              </option>
+              <option *ngFor="let d of dedicacionesDisponibles" [value]="d">
+                {{ d | titlecase }}
+              </option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span class="field__label">Departamento</span>
+            <select class="input" formControlName="departamento">
+              <option value="">Seleccione un departamento…</option>
+              <option *ngFor="let der of departamentos" [value]="der">
+                {{ der | titlecase }}
+              </option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span class="field__label">Unidad académica</span>
+            <input class="input" type="text" formControlName="unidad_academica" />
+          </label>
+
+          <label class="field">
+            <span class="field__label">Correo institucional</span>
+            <input class="input" type="email" formControlName="correo_institucional" />
+          </label>
+
+          <label class="field">
+            <span class="field__label">Correo personal</span>
+            <input class="input" type="email" formControlName="correo_personal" />
+          </label>
+
+          <label class="checkbox">
+            <input type="checkbox" formControlName="activo" />
+            <span>Activo</span>
+          </label>
+        </div>
+
+        <div class="modal__actions">
+          <button type="button" class="btn btn--ghost" (click)="closeModal()">Cancelar</button>
+          <button type="submit" class="btn btn--primary btn--affirm" [disabled]="form.invalid || saving">
+            <span>{{ saving ? 'Guardando…' : (editingId === null ? 'Crear' : 'Guardar cambios') }}</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

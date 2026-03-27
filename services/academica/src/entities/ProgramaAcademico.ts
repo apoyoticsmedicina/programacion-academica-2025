@@ -1,17 +1,23 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
-import { PlanEstudio } from './PlanEstudio';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, Index, Check } from "typeorm";
+import { PlanDeEstudio } from "./PlanDeEstudio";
 
-@Entity({ name: 'programas_academicos' })
+@Entity({ name: "programas_academicos" })
+@Check(`"codigo" > 0`)
 export class ProgramaAcademico {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column({ type: 'varchar' })
+  @Column({ type: "int" })
+  @Index({ unique: true })
+  codigo!: number;
+
+  @Column({ type: "varchar" })
   nombre!: string;
 
-  @Column({ type: 'varchar' })
-  tipo!: string; // "pregrado" | "posgrado"
+  @Column({ type: "varchar" }) // "pregrado" | "posgrado"
+  tipo!: string;
 
-  @OneToMany(() => PlanEstudio, (p) => p.programa)
-  planes!: PlanEstudio[];
+  // Relaciones
+  @OneToMany(() => PlanDeEstudio, (p) => p.programa)
+  planes!: PlanDeEstudio[];
 }

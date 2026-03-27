@@ -1,9 +1,8 @@
 .planes {
-  position: relative;   // al igual que .programas para posicionar el botón
+  position: relative;
   padding: 3rem 1rem 1rem;
-  padding-bottom: 4rem; // deja espacio si quisiéramos un botón flotante abajo
+  padding-bottom: 4rem;
 
-  // Header con título y botón a la derecha
   &__header {
     display: flex;
     align-items: center;
@@ -16,13 +15,11 @@
     font-weight: bold;
   }
 
-  // Botón “Agregar Plan” flotando arriba a la derecha
   &__add-btn {
     position: absolute;
     top: 1rem;
     right: 1rem;
     z-index: 10;
-
     background-color: #00802b;
     color: #fff;
     border: none;
@@ -30,20 +27,15 @@
     border-radius: 4px;
     cursor: pointer;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-
-    &:hover {
-      background-color: #006622;
-    }
+    &:hover { background-color: #006622; }
   }
 
-  // Lista de planes
   &__list {
     list-style: none;
     margin: 0;
     padding: 0;
 
-    // Ítem individual
-    & > .planes__item {
+    .planes__item {
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -58,25 +50,9 @@
         gap: 1rem;
       }
 
-      .planes__programa {
-        font-weight: 600;
-      }
-
-      .planes__version {
-        color: #555;
-      }
-
-      .planes__status {
-        padding: 0.2rem 0.5rem;
-        border-radius: 3px;
-        background: #e0ffe0;
-        color: #008000;
-        font-size: 0.8rem;
-
-        &.inactivo {
-          background: #ffe0e0;
-          color: #800000;
-        }
+      .planes__inactive {
+        color: #800000;
+        font-style: italic;
       }
 
       .planes__edit {
@@ -88,8 +64,7 @@
       }
     }
 
-    // Mensaje cuando no hay planes
-    & > .planes__empty {
+    .planes__empty {
       font-style: italic;
       color: #999;
       padding: 1rem;
@@ -97,13 +72,9 @@
     }
   }
 
-  /* Modal superpuesto */
-  &__modal-backdrop {
+  &__backdrop {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    inset: 0;
     background: rgba(0, 0, 0, 0.3);
     display: flex;
     align-items: center;
@@ -113,16 +84,14 @@
 
   &__modal {
     background: #fff;
-    padding: 2rem;
+    padding: 1.25rem 1.5rem;
     border-radius: 6px;
-    width: 320px;
-    max-width: 90%;
+    width: 420px;
+    max-width: 92%;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    position: relative;
-    z-index: 30;
 
     h3 {
-      margin-top: 0;
+      margin: 0 0 0.75rem 0;
       font-size: 1.1rem;
     }
 
@@ -138,41 +107,92 @@
 
         select,
         input {
-          padding: 0.4rem;
-          border: 1px solid #ccc;
-          border-radius: 4px;
           margin-top: 0.3rem;
-          font-size: 0.9rem;
-        }
-      }
-
-      &-actions {
-        display: flex;
-        justify-content: flex-end;
-        gap: 0.5rem;
-        margin-top: 1rem;
-
-        button {
-          padding: 0.4rem 0.8rem;
-          border: none;
-          border-radius: 4px;
-          cursor: pointer;
+          height: 36px;
+          padding: 0 0.6rem;
+          border: 1px solid #ccc;
+          border-radius: 6px;
+          font-size: 0.95rem;
+          background: #fff;
         }
 
-        button[type='button'] {
-          background: #ccc;
-        }
+        .inline {
+          display: flex;
+          align-items: center;
+          gap: .5rem;
 
-        button[type='submit'] {
-          background: #00802b;
-          color: #fff;
+          select { flex: 1; }
 
-          &:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
+          .link {
+            background: transparent;
+            border: none;
+            color: #00802b;
+            cursor: pointer;
+            padding: 0 .25rem;
+            height: 36px;
           }
         }
       }
     }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: .25rem;
+      margin: .25rem 0 1rem;
+
+      button {
+        flex: 1;
+        padding: .4rem .6rem;
+        border: 1px solid #ddd;
+        background: #f7f7f7;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+
+        &.active {
+          background: #eaffea;
+          border-color: #00802b;
+          color: #006622;
+        }
+      }
+    }
   }
+
+  &__modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+
+    button {
+      padding: 0.45rem 0.9rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    button[type='button'] {
+      background: #e5e5e5;
+      color: #111;
+    }
+
+    button[type='submit'] {
+      background: #00802b;
+      color: #fff;
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+    }
+  }
+}
+
+/* Ajuste para el mini-form de cohorte dentro del modal */
+.cohorte-form {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
 }

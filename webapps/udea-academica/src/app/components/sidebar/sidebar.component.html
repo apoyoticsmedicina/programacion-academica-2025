@@ -5,38 +5,51 @@
       <h3 class="sidebar__section-title">Menú</h3>
       <ul class="sidebar__list">
         <li routerLinkActive="active" [routerLinkActiveOptions]="{ exact:true }">
-          <a routerLink="/dashboard/programas">
+          <a routerLink="programas">
             <span class="icon">📋</span>
             <span class="label">Programas</span>
           </a>
         </li>
         <li routerLinkActive="active">
-          <a routerLink="/dashboard/cursos">
+          <a routerLink="cursos">
             <span class="icon">📚</span>
             <span class="label">Cursos</span>
           </a>
         </li>
         <li routerLinkActive="active">
-          <a routerLink="/dashboard/cronograma">
+          <a routerLink="cronogramas">
             <span class="icon">📅</span>
-            <span class="label">Cronograma</span>
+            <span class="label">Cronogramas</span>
+          </a>
+        </li>
+        <li *hasRole="[ROLES.SUPERADMIN, ROLES.ADMIN]" routerLinkActive="active">
+          <a routerLink="asignar-coordinadores">
+            <span class="icon">📋</span>
+            <span class="label">Asignar Coordinadores</span>
+          </a>
+        </li>
+        <li *hasRole="[ROLES.SUPERADMIN, ROLES.ADMIN, ROLES.COORD_PROGRAMA, ROLES.COORD_CURSO]"
+          routerLinkActive="active">
+          <a routerLink="solicitudes-cambio">
+            <span class="icon">📝</span>
+            <span class="label">Solicitudes de cambio</span>
           </a>
         </li>
       </ul>
     </div>
 
     <!-- Sección Recursos -->
-    <div class="sidebar__section">
+    <div *hasRole="[ROLES.SUPERADMIN, ROLES.ADMIN]" class="sidebar__section">
       <h3 class="sidebar__section-title">Recursos</h3>
       <ul class="sidebar__list">
         <li routerLinkActive="active">
-          <a routerLink="/dashboard/docentes">
+          <a routerLink="docentes">
             <span class="icon">👩‍🏫</span>
             <span class="label">Docentes</span>
           </a>
         </li>
         <li routerLinkActive="active">
-          <a routerLink="/dashboard/planes-estudio">
+          <a routerLink="planes-estudio">
             <span class="icon">📝</span>
             <span class="label">Planes de Estudio</span>
           </a>
@@ -49,9 +62,21 @@
       <h3 class="sidebar__section-title">Ajustes</h3>
       <ul class="sidebar__list">
         <li routerLinkActive="active">
-          <a routerLink="/dashboard/perfil">
+          <a routerLink="perfil">
             <span class="icon">⚙️</span>
             <span class="label">Perfil</span>
+          </a>
+        </li>
+        <li *hasRole="[ROLES.SUPERADMIN, ROLES.ADMIN]" routerLinkActive="active">
+          <a routerLink="registro">
+            <span class="icon">🧾</span>
+            <span class="label">Registro</span>
+          </a>
+        </li>
+        <li *hasRole="[ROLES.SUPERADMIN, ROLES.ADMIN]" routerLinkActive="active">
+          <a routerLink="estados-servidor">
+            <span class="icon">🧾</span>
+            <span class="label">Estados del Servidor</span>
           </a>
         </li>
       </ul>

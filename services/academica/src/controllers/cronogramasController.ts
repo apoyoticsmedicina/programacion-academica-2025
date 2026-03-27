@@ -1,0 +1,79 @@
+// src/controllers/cronogramasController.ts
+import { Request, Response } from "express";
+import {
+    cronogramasService,
+    CronogramaGrupoInput,
+} from "../services/cronogramasService";
+
+export class CronogramasController {
+    /**
+     * GET /cronogramas/curso/:cursoId
+     * Devuelve los grupos y docentes de cronograma para ese curso.
+     */
+    public getByCurso = async (req: Request, res: Response) => {
+        try {
+            const cursoId = Number(req.params.cursoId);
+            if (Number.isNaN(cursoId) || cursoId <= 0) {
+                return res.status(400).json({ message: "cursoId inválido" });
+            }
+
+            const grupos = await cronogramasService.getByCurso(cursoId);
+            return res.json(grupos);
+        } catch (err) {
+            console.error("Error en GET /cronogramas/curso/:cursoId", err);
+            return res.status(500).json({ message: "Error interno del servidor" });
+        }
+    };
+
+    /**
+     * PUT /cronogramas/curso/:cursoId
+     * Reemplaza completamente los grupos del curso con los que vengan en el body.
+     *
+     * Body esperado:
+     * {
+     *   "grupos": [
+     *     {
+     *       "nombre": "Grupo 1",
+     *       "docentes": [
+     *         { "docenteId": 1, "horas": 8 },
+     *         { "docenteId": 2, "horas": 4 }
+     *       ]
+     *     }
+     *   ]
+     * }
+     */
+    public replaceForCurso = async (req: Request, res: Response) => {
+        try {
+            const cursoId = Number(req.params.cursoId);
+            if (Number.isNaN(cursoId) || cursoId <= 0) {
+                return res.status(400).json({ message: "cursoId inválido" });
+            }
+
+            const gruposBody = (req.body?.grupos ?? []) as CronogramaGrupoInput[];
+
+            if (!Array.isArray(gruposBody)) {
+                return res
+                    .status(400)
+                    .json({ message: "El payload debe incluir un arreglo 'grupos'" });
+            }
+
+            // Validación mínima / saneo
+            const gruposSanitizados: CronogramaGrupoInput[] = gruposBody.map(
+                (g, i) => ({
+                    nombre: g.nombre || `Grupo ${i + 1}`,
+                    docentes: Array.isArray(g.docentes) ? g.docentes : [],
+                })
+            );
+
+            const resultado = await cronogramasService.replaceForCurso(
+                cursoId,
+                gruposSanitizados
+            );
+
+            return res.json(resultado);
+        } catch (err) {
+            console.error("Error en PUT /cronogramas/curso/:cursoId", err);
+            return res.status(500).json({ message: "Error interno del servidor" });
+        }
+    };
+}

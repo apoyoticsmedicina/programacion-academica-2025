@@ -1,0 +1,102 @@
+<ng-container *hasRole="[ROLES.SUPERADMIN, ROLES.ADMIN]">
+    <div class="asignar">
+        <header class="asignar__header">
+            <h1 class="asignar__title">Asignar coordinador a cursos</h1>
+            <p class="asignar__subtitle">
+                Selecciona un coordinador y define los cursos que gestionará.
+            </p>
+        </header>
+
+        <div class="asignar__messages">
+            <div class="asignar__alert asignar__alert--error" *ngIf="error">
+                {{ error }}
+            </div>
+            <div class="asignar__alert asignar__alert--success" *ngIf="success">
+                {{ success }}
+            </div>
+        </div>
+
+        <main class="asignar__main">
+            <!-- Selector -->
+            <section class="asignar__card">
+                <h2 class="asignar__card-title">1) Seleccionar coordinador</h2>
+
+                <div *ngIf="loadingUsuarios" class="asignar__loading">
+                    Cargando usuarios…
+                </div>
+
+                <form [formGroup]="form" class="asignar__form">
+                    <label>
+                        Coordinador
+                        <select formControlName="usuarioId" (change)="onSelectCoordinador()">
+                            <option value="">— Seleccione —</option>
+                            <option *ngFor="let u of coordinadores" [value]="u.id">
+                                {{ (u.nombre || u.email) }} — {{ getRoleLabel(u.rol) }}
+                            </option>
+                        </select>
+
+                        <span class="asignar__error-text" *ngIf="hasError('usuarioId', 'required')">
+                            Debe seleccionar un coordinador.
+                        </span>
+                    </label>
+                </form>
+            </section>
+
+            <!-- Cursos -->
+            <section class="asignar__card asignar__card--secondary">
+                <div class="asignar__card-header">
+                    <h2 class="asignar__card-title">2) Asignar cursos</h2>
+
+                    <span class="asignar__badge" *ngIf="cursos.length">
+                        {{ getSelectedCount() }} seleccionados / {{ cursos.length }}
+                    </span>
+                </div>
+
+                <div *ngIf="loadingCursos" class="asignar__loading">
+                    Cargando cursos…
+                </div>
+
+                <div *ngIf="!loadingCursos && !cursos.length" class="asignar__empty">
+                    Selecciona un coordinador para listar los cursos asignables.
+                </div>
+
+                <div *ngIf="cursos.length" class="asignar__tools">
+                    <button type="button" class="btn" (click)="marcarTodos(true)">
+                        Marcar todos
+                    </button>
+                    <button type="button" class="btn" (click)="marcarTodos(false)">
+                        Desmarcar
+                    </button>
+                </div>
+
+                <div class="asignar__table-wrapper" *ngIf="cursos.length">
+                    <table class="asignar__table">
+                        <thead>
+                            <tr>
+                                <th>Asignar</th>
+                                <th>Código</th>
+                                <th>Curso</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let c of cursos">
+                                <td>
+                                    <input type="checkbox" [checked]="c.asignado" (change)="toggleCurso(c.id)" />
+                                </td>
+                                <td class="asignar__mono">{{ c.codigo }}</td>
+                                <td>{{ c.nombre }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="asignar__actions">
+                    <button type="button" class="btn btn--primary" (click)="guardar()"
+                        [disabled]="saving || form.invalid">
+                        {{ saving ? 'Guardando…' : 'Guardar asignación' }}
+                    </button>
+                </div>
+            </section>
+        </main>
+    </div>
+</ng-container>

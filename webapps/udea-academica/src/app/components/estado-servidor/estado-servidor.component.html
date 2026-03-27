@@ -1,0 +1,194 @@
+<ng-container *hasRole="[ROLES.SUPERADMIN, ROLES.ADMIN]">
+    <div class="estado">
+        <header class="estado__header">
+            <div>
+                <h1 class="estado__title">Estados del servidor</h1>
+                <p class="estado__subtitle">
+                    Administra las ventanas de tiempo y activa los flujos del sistema.
+                </p>
+            </div>
+
+            <div class="estado__header-actions">
+                <button class="btn" type="button" (click)="refresh()" [disabled]="loading">
+                    {{ loading ? 'Cargando…' : 'Refrescar' }}
+                </button>
+                <button class="btn btn--primary" type="button" (click)="recalc()">
+                    Recalc manual
+                </button>
+            </div>
+        </header>
+
+        <div class="estado__messages">
+            <div class="estado__alert estado__alert--error" *ngIf="error">
+                {{ error }}
+            </div>
+            <div class="estado__alert estado__alert--success" *ngIf="success">
+                {{ success }}
+            </div>
+        </div>
+
+        <!-- Estado activo / efectivo -->
+        <section class="estado__grid">
+            <article class="estado__card">
+                <div class="estado__card-label">Activo (persistido)</div>
+                <div class="estado__card-value">{{ active?.estado || '—' }}</div>
+                <div class="estado__card-meta">{{ formatWindow(active) }}</div>
+            </article>
+
+            <article class="estado__card estado__card--secondary">
+                <div class="estado__card-label">Efectivo (por reloj)</div>
+                <div class="estado__card-value">{{ effective?.estado || '—' }}</div>
+                <div class="estado__card-meta">{{ formatWindow(effective) }}</div>
+            </article>
+        </section>
+
+        <main class="estado__main">
+            <!-- Flujo 1 -->
+            <section class="estado__card">
+                <h2 class="estado__card-title">Flujo 1: solicitudes → revisiones → cronogramas</h2>
+
+                <form [formGroup]="flow1Form" (ngSubmit)="submitFlow1()" class="estado__form">
+                    <div class="estado__form-grid">
+                        <label>
+                            Solicitudes desde
+                            <input type="datetime-local" formControlName="sDesde" />
+                            <span class="estado__error-text" *ngIf="hasError(flow1Form, 'sDesde', 'required')">
+                                Requerido.
+                            </span>
+                        </label>
+
+                        <label>
+                            Solicitudes hasta
+                            <input type="datetime-local" formControlName="sHasta" />
+                            <span class="estado__error-text" *ngIf="hasError(flow1Form, 'sHasta', 'required')">
+                                Requerido.
+                            </span>
+                        </label>
+
+                        <label>
+                            Revisiones desde
+                            <input type="datetime-local" formControlName="rDesde" />
+                            <span class="estado__error-text" *ngIf="hasError(flow1Form, 'rDesde', 'required')">
+                                Requerido.
+                            </span>
+                        </label>
+
+                        <label>
+                            Revisiones hasta
+                            <input type="datetime-local" formControlName="rHasta" />
+                            <span class="estado__error-text" *ngIf="hasError(flow1Form, 'rHasta', 'required')">
+                                Requerido.
+                            </span>
+                        </label>
+
+                        <label>
+                            Cronogramas desde
+                            <input type="datetime-local" formControlName="cDesde" />
+                            <span class="estado__error-text" *ngIf="hasError(flow1Form, 'cDesde', 'required')">
+                                Requerido.
+                            </span>
+                        </label>
+
+                        <label>
+                            Cronogramas hasta
+                            <input type="datetime-local" formControlName="cHasta" />
+                            <span class="estado__error-text" *ngIf="hasError(flow1Form, 'cHasta', 'required')">
+                                Requerido.
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="estado__actions">
+                        <button class="btn btn--primary" type="submit"
+                            [disabled]="flow1Form.invalid || submittingFlow1">
+                            {{ submittingFlow1 ? 'Activando…' : 'Activar flujo 1' }}
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Flujo 2 -->
+            <section class="estado__card estado__card--secondary">
+                <h2 class="estado__card-title">Flujo 2: abrir solo cronogramas</h2>
+                <p class="estado__hint">
+                    Requiere que el flujo 1 haya ocurrido al menos una vez y que el estado efectivo actual sea “idle
+                    (lectura)”.
+                </p>
+
+                <form [formGroup]="flow2Form" (ngSubmit)="submitFlow2()" class="estado__form">
+                    <div class="estado__form-grid estado__form-grid--two">
+                        <label>
+                            Cronogramas desde
+                            <input type="datetime-local" formControlName="cDesde" />
+                            <span class="estado__error-text" *ngIf="hasError(flow2Form, 'cDesde', 'required')">
+                                Requerido.
+                            </span>
+                        </label>
+
+                        <label>
+                            Cronogramas hasta
+                            <input type="datetime-local" formControlName="cHasta" />
+                            <span class="estado__error-text" *ngIf="hasError(flow2Form, 'cHasta', 'required')">
+                                Requerido.
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="estado__actions">
+                        <button class="btn btn--primary" type="submit"
+                            [disabled]="flow2Form.invalid || submittingFlow2">
+                            {{ submittingFlow2 ? 'Activando…' : 'Activar cronogramas-only' }}
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Tabla -->
+            <section class="estado__card estado__card--table">
+                <div class="estado__card-header">
+                    <h2 class="estado__card-title">Estados</h2>
+                    <span class="estado__badge" *ngIf="estados.length">
+                        {{ estados.length }} estado{{ estados.length === 1 ? '' : 's' }}
+                    </span>
+                </div>
+
+                <div *ngIf="loading" class="estado__loading">
+                    Cargando estados…
+                </div>
+
+                <div *ngIf="!loading && !estados.length" class="estado__empty">
+                    Aún no hay estados configurados.
+                </div>
+
+                <div class="estado__table-wrapper" *ngIf="estados.length">
+                    <table class="estado__table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Estado</th>
+                                <th>Activo</th>
+                                <th>Desde</th>
+                                <th>Hasta</th>
+                                <th>Actualizado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let e of estados">
+                                <td>{{ e.id }}</td>
+                                <td class="estado__state">{{ e.estado }}</td>
+                                <td>
+                                    <span class="estado__tag" [class.estado__tag--on]="e.activo">
+                                        {{ e.activo ? 'Sí' : 'No' }}
+                                    </span>
+                                </td>
+                                <td>{{ e.activo_desde ? (e.activo_desde | date:'short') : '—' }}</td>
+                                <td>{{ e.activo_hasta ? (e.activo_hasta | date:'short') : '—' }}</td>
+                                <td>{{ e.updatedAt | date:'short' }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+</ng-container>

@@ -1,11 +1,8 @@
 <div class="planes">
 
-  <!-- Header con botón a la derecha -->
   <div class="planes__header">
-    <!-- Dale la clase planes__title para el título -->
     <h2 class="planes__title">Planes de Estudio</h2>
-    <!-- Cambia planes__add por planes__add-btn -->
-    <button class="planes__add-btn" (click)="openModal()">
+    <button *hasRole="[ROLES.SUPERADMIN, ROLES.ADMIN]" class="planes__add-btn" (click)="openModal()">
       + Nuevo Plan
     </button>
   </div>
@@ -17,50 +14,108 @@
 
     <li class="planes__item" *ngFor="let pl of planes">
       <div class="planes__info">
-        {{ getProgramaNombre(pl.programaId) }}
-        — <em>v{{ pl.version }}</em>
-        <span *ngIf="!pl.activo" class="planes__inactive">
-          (inactivo)
-        </span>
+        {{ pl.programa?.nombre || '—' }} — <em>v{{ pl.version }}</em>
+
+        <!-- NUEVO: cohorte mostrado en la tarjeta -->
+        <span class="planes__cohorte">• Vigencia: {{ getCohorteTexto(pl) }}</span>
+
+        <span *ngIf="!pl.activo" class="planes__inactive">(inactivo)</span>
       </div>
-      <button class="planes__edit" (click)="openModal(pl)">
+      <button *hasRole="[ROLES.SUPERADMIN, ROLES.ADMIN]" class="planes__edit" (click)="openModal(pl)">
         ✎
       </button>
     </li>
   </ul>
 
-  <div class="planes__backdrop" *ngIf="showModal">
-    <div class="planes__modal">
-      <h3>
-        {{ editingPlan
-           ? 'Editar Plan (v' + editingPlan.version + ')'
-           : 'Crear Plan de Estudio' }}
-      </h3>
-      <form [formGroup]="form" (ngSubmit)="submit()">
-        <label>
-          Programa:
-          <select formControlName="programaId">
-            <option [ngValue]="null">— Seleccione —</option>
-            <option *ngFor="let pr of programas" [ngValue]="pr.id">
-              {{ pr.nombre }} ({{ pr.tipo }})
-            </option>
-          </select>
-        </label>
+  <!-- Modal -->
+  <ng-container *hasRole="[ROLES.SUPERADMIN, ROLES.ADMIN]">
+    <div class="planes__backdrop" *ngIf="showModal" role="dialog" aria-modal="true">
+      <div class="planes__modal">
+        <h3>
+          {{ editingPlan ? ('Editar Plan (v' + editingPlan.version + ')') : 'Crear Plan de Estudio' }}
+        </h3>
 
-        <label>
-          Versión:
-          <input type="text" formControlName="version" />
-        </label>
-
-        <div class="planes__modal-buttons">
-          <button type="button" (click)="closeModal()">Cancelar</button>
-          <button type="submit" [disabled]="form.invalid">
-            {{ editingPlan
-               ? 'Guardar y Desactivar Antiguo'
-               : 'Crear' }}
+        <!-- Pestañas -->
+        <div class="tabs">
+          <button type="button" [class.active]="modalMode === 'existing'" (click)="modalMode = 'existing'">
+            Usar Vigencia existente
+          </button>
+          <button type="button" [class.active]="modalMode === 'newCohorte'" (click)="modalMode = 'newCohorte'">
+            Crear Vigencia
           </button>
         </div>
-      </form>
+
+        <!-- Paso: crear cohorte -->
+        <form *ngIf="modalMode === 'newCohorte'" [formGroup]="cohorteForm" (ngSubmit)="createCohorte()"
+          class="cohorte-form">
+          <label>
+            Período:
+            <input type="text" formControlName="periodo" placeholder="p. ej. 2025-1" />
+          </label>
+
+          <label>
+            Fecha inicio:
+            <input type="date" formControlName="fecha_inicio" />
+          </label>
+
+          <label>
+            Fecha fin:
+            <input type="date" formControlName="fecha_fin" />
+          </label>
+
+          <div class="planes__modal-buttons">
+            <button type="button" (click)="modalMode = 'existing'">Cancelar</button>
+            <button type="submit" [disabled]="cohorteForm.invalid || savingCohorte">
+              {{ savingCohorte ? 'Guardando…' : 'Crear Vigencia' }}
+            </button>
+          </div>
+        </form>
+
+        <!-- Paso: plan de estudio (usar cohorte existente) -->
+        <form *ngIf="modalMode === 'existing'" [formGroup]="form" (ngSubmit)="submit()">
+          <label>
+            Programa:
+            <select formControlName="programaId">
+              <option [ngValue]="null">— Seleccione —</option>
+              <option *ngFor="let pr of programas" [ngValue]="pr.id">
+                {{ pr.nombre }} ({{ pr.tipo }})
+              </option>
+            </select>
+          </label>
+
+          <label>
+            Vigencia:
+            <div class="inline">
+              <select formControlName="cohorteId">
+                <option [ngValue]="null">— Seleccione —</option>
+                <option *ngFor="let ch of cohortes" [ngValue]="ch.id">
+                  {{ ch.periodo }} — {{ ch.fecha_inicio | date:'yyyy-MM-dd' }} a {{ ch.fecha_fin | date:'yyyy-MM-dd' }}
+                </option>
+              </select>
+              <button type="button" class="link" (click)="modalMode = 'newCohorte'">
+                + Crear vigencia
+              </button>
+            </div>
+          </label>
+
+          <label>
+            Versión:
+            <input type="text" formControlName="version" />
+          </label>
+
+          <label>
+            Número de niveles (semestres):
+            <input type="number" min="1" step="1" formControlName="niveles" />
+          </label>
+
+          <div class="planes__modal-buttons">
+            <button type="button" (click)="closeModal()">Cancelar</button>
+            <button type="submit" [disabled]="form.invalid">
+              {{ editingPlan ? 'Guardar y Desactivar Antiguo' : 'Crear' }}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
-  </div>
+  </ng-container>
 </div>

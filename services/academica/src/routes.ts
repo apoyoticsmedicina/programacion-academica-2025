@@ -1,107 +1,178 @@
 import { Router } from 'express';
+import { requireAuth } from './middlewares/requireAuth';
+import { requireRole } from './middlewares/requireRole';
+
 import { ProgramasController } from './controllers/programasController';
 import { CursoController } from './controllers/cursoController';
-import { CronogramaController } from './controllers/cronogramaCrontroller';
 import { PlanEstudioController } from './controllers/planEstudioController';
-import { RegistroPlanEstudioController } from './controllers/registroPlanEstudioController';
 import { PlanEstudioCursoController } from './controllers/planEstudioCursoController';
-import { CursoRequisitoController } from './controllers/cursoRequisitoController';
 import { DocenteController } from './controllers/docenteController';
-import { CursoDocenteController } from './controllers/cursoDocenteController';
-import { CursoDetalleController } from './controllers/cursoDetalleController';
-import { SolicitudCambioController } from './controllers/solicitudCambioController';
+import { ProgramaDocenteController } from './controllers/programaDocenteController';
+import { CohorteController } from './controllers/cohorteController';
+import { ProgramaCursoController } from './controllers/programaCursoController';
+import { ProgramaCursoRequisitoController } from './controllers/programaCursoRequisitoController';
+import { HorasCursoController } from './controllers/horasCursoController';
+import { ProgramaDocxController } from "./controllers/programaDocxController";
+import { AuthController } from './controllers/authController';
+import { CronogramasController } from './controllers/cronogramasController';
+import { CronogramaExcelController } from './controllers/cronogramaExcelController';
+import { EstadoServidorController } from './controllers/estadoServidorController';
+import { UsuarioCursoController } from './controllers/usuarioCursoController';
+import { SolicitudesCambioController } from './controllers/solicitudesCambioController';
 
 const router = Router();
+
 const progCtrl = new ProgramasController();
-const cursosCtrl   = new CursoController();
-const cronCtrl = new CronogramaController();
+const cursosCtrl = new CursoController();
 const peCtrl = new PlanEstudioController();
-const rpCtrl = new RegistroPlanEstudioController();
 const pecCtrl = new PlanEstudioCursoController();
-const crCtrl = new CursoRequisitoController();
 const docCtrl = new DocenteController();
-const cdocCtrl = new CursoDocenteController();
-const cdetCtrl = new CursoDetalleController();
-const scCtrl = new SolicitudCambioController();
+const pdocCtrl = new ProgramaDocenteController();
+const cohCtrl = new CohorteController();
+const pcCtrl = new ProgramaCursoController();
+const pcrCtrl = new ProgramaCursoRequisitoController();
+const hcCtrl = new HorasCursoController();
+const authCtrl = new AuthController();
+const cronCtrl = new CronogramasController();
+const cronExcelCtrl = new CronogramaExcelController();
+const estadoSrvCtrl = new EstadoServidorController();
+const ucCtrl = new UsuarioCursoController();
+const scCtrl = new SolicitudesCambioController();
 
+const ADMIN = requireRole(['superadmin', 'admin']);
+const ANY = requireRole([
+    'superadmin',
+    'admin',
+    'coordinador de programa',
+    'coordinador de curso',
+    'docente',
+]);
+const COORD = requireRole(['coordinador de programa', 'coordinador de curso', 'admin', 'superadmin']);
 
-// /programas
-router.get('/programas', progCtrl.getAll);
-router.get('/programas/:id', progCtrl.getById);
-router.post('/programas', progCtrl.create);
-router.delete('/programas/:id', progCtrl.remove);
+// ======== RUTAS DE AUTH (públicas) =========
+router.get('/auth/google', authCtrl.googleAuth);
+router.get('/auth/google/callback', authCtrl.googleCallback);
+router.post('/auth/dev-login', authCtrl.devLogin);
 
-// Cursos
-router.get   ('/cursos',           cursosCtrl.getAll);
-router.get   ('/cursos/:id',       cursosCtrl.getById);
-router.post  ('/cursos',           cursosCtrl.create);
-router.patch ('/cursos/:id',       cursosCtrl.update);
-router.delete('/cursos/:id',       cursosCtrl.remove);
+// ======== AUTH (requiere token) =========
+router.get('/auth/me', requireAuth, (req, res) => res.json(req.user)); // opcional: simplifica /auth/me
 
-// Cronograma
-router.get('/cronogramas', cronCtrl.getAll);
-router.get('/cronogramas/:id', cronCtrl.getById);
-router.post('/cronogramas', cronCtrl.create);
-router.patch('/cronogramas/:id', cronCtrl.update);
-router.delete('/cronogramas/:id', cronCtrl.remove);
+// gestión de usuarios / preregistro (admin)
+router.get('/auth/usuarios', requireAuth, ADMIN, authCtrl.listUsuarios);
+router.post('/auth/registro', requireAuth, ADMIN, authCtrl.preRegister);
+router.get('/auth/roles', requireAuth, ADMIN, authCtrl.roles);
 
-// PlanEstudio
-router.get('/planes-estudio', peCtrl.getAll);
-router.get('/planes-estudio/:id', peCtrl.getById);
-router.post('/planes-estudio', peCtrl.create);
-router.patch('/planes-estudio/:id', peCtrl.update);
-router.delete('/planes-estudio/:id', peCtrl.remove);
+// A partir de aquí, todo requiere login
+router.use(requireAuth);
 
-// RegistroPlanEstudio
-router.get('/registro-plan', rpCtrl.getAll);
-router.get('/registro-plan/:id', rpCtrl.getById);
-router.post('/registro-plan', rpCtrl.create);
-router.patch('/registro-plan/:id', rpCtrl.update);
-router.delete('/registro-plan/:id', rpCtrl.remove);
+// ================== PROGRAMAS (lectura: todos, escritura: admin) ==================
+router.get('/programas', ANY, progCtrl.getAll);
+router.get('/programas/:id', ANY, progCtrl.getById);
+router.post('/programas', ADMIN, progCtrl.create);
+router.patch('/programas/:id', ADMIN, progCtrl.update);
+router.delete('/programas/:id', ADMIN, progCtrl.remove);
 
-// PlanEstudioCurso (composite key)
-router.get('/plan-estudio-cursos', pecCtrl.getAll);
-router.get('/plan-estudio-cursos/:planId/:cursoId', pecCtrl.getByIds);
-router.post('/plan-estudio-cursos', pecCtrl.create);
-router.patch('/plan-estudio-cursos/:planId/:cursoId', pecCtrl.update);
-router.delete('/plan-estudio-cursos/:planId/:cursoId', pecCtrl.remove);
+// ================== CURSOS ==================
+router.get('/cursos', ANY, cursosCtrl.getAll);
+router.get('/cursos/:id', ANY, cursosCtrl.getById);
+router.post('/cursos', ADMIN, cursosCtrl.create);
+router.patch('/cursos/:id', ADMIN, cursosCtrl.update);
+router.delete('/cursos/:id', ADMIN, cursosCtrl.remove);
 
-// CursoRequisito (composite key)
-router.get('/curso-requisitos', crCtrl.getAll);
-router.get('/curso-requisitos/:cursoId/:reqId', crCtrl.getByIds);
-router.post('/curso-requisitos', crCtrl.create);
-router.patch('/curso-requisitos/:cursoId/:reqId', crCtrl.update);
-router.delete('/curso-requisitos/:cursoId/:reqId', crCtrl.remove);
+// ================== PLANES ESTUDIO ==================
+router.get('/planes-estudio', ANY, peCtrl.getAll);
+router.get('/planes-estudio/:id', ANY, peCtrl.getById);
+router.post('/planes-estudio', ADMIN, peCtrl.create);
+router.patch('/planes-estudio/:id', ADMIN, peCtrl.update);
+router.delete('/planes-estudio/:id', ADMIN, peCtrl.remove);
 
-// Docentes
-router.get('/docentes', docCtrl.getAll);
-router.get('/docentes/:id', docCtrl.getById);
-router.post('/docentes', docCtrl.create);
-router.patch('/docentes/:id', docCtrl.update);
-router.delete('/docentes/:id', docCtrl.remove);
+// ================== PLAN_ESTUDIO_CURSOS ==================
+router.get('/plan-estudio-cursos', ANY, pecCtrl.getAll);
+router.get('/plan-estudio-cursos/:id', ANY, pecCtrl.getById);
+router.post('/plan-estudio-cursos', ADMIN, pecCtrl.create);
+router.patch('/plan-estudio-cursos/:id', ADMIN, pecCtrl.update);
+router.delete('/plan-estudio-cursos/:id', ADMIN, pecCtrl.remove);
 
-// Cursos ↔ Docentes (composite key)
-router.get('/cursos-docentes', cdocCtrl.getAll);
-router.get('/cursos-docentes/curso/:cursoId', cdocCtrl.getByCurso);
-router.get('/cursos-docentes/docente/:docenteId', cdocCtrl.getByDocente);
-router.get('/cursos-docentes/:cursoId/:docenteId', cdocCtrl.getByIds);
-router.post('/cursos-docentes', cdocCtrl.create);
-router.patch('/cursos-docentes/:cursoId/:docenteId', cdocCtrl.update);
-router.delete('/cursos-docentes/:cursoId/:docenteId', cdocCtrl.remove);
+// ================== DOCENTES (admin) ==================
+router.get('/docentes', ANY, docCtrl.getAll);
+router.get('/docentes/:id', ANY, docCtrl.getById);
+router.post('/docentes', ADMIN, docCtrl.create);
+router.patch('/docentes/:id', ADMIN, docCtrl.update);
+router.delete('/docentes/:id', ADMIN, docCtrl.remove);
 
-// Curso Detalle (1:1 con curso)
-router.get('/curso-detalle', cdetCtrl.getAll);
-router.get('/curso-detalle/:id', cdetCtrl.getById);
-router.get('/curso-detalle/curso/:cursoId', cdetCtrl.getByCurso);
-router.post('/curso-detalle', cdetCtrl.create);
-router.patch('/curso-detalle/:id', cdetCtrl.update);
-router.delete('/curso-detalle/:id', cdetCtrl.remove);
+// ================== PROGRAMA ↔ DOCENTE ==================
+router.get('/programas-docente', ADMIN, pdocCtrl.getAll);
+router.get('/programas-docente/:id', ADMIN, pdocCtrl.getById);
+router.post('/programas-docente', ADMIN, pdocCtrl.create);
+router.patch('/programas-docente/:id', ADMIN, pdocCtrl.update);
+router.delete('/programas-docente/:id', ADMIN, pdocCtrl.remove);
 
-// Solicitudes de cambio
-router.get('/solicitudes-cambio', scCtrl.getAll);
-router.get('/solicitudes-cambio/:id', scCtrl.getById);
-router.post('/solicitudes-cambio', scCtrl.create);
-router.patch('/solicitudes-cambio/:id', scCtrl.update);
-router.delete('/solicitudes-cambio/:id', scCtrl.remove);
+// ================== COHORTES ==================
+router.get('/cohortes', ANY, cohCtrl.getAll);
+router.get('/cohortes/:id', ANY, cohCtrl.getById);
+router.post('/cohortes', ADMIN, cohCtrl.create);
+router.patch('/cohortes/:id', ADMIN, cohCtrl.update);
+router.delete('/cohortes/:id', ADMIN, cohCtrl.remove);
+
+// ================== PROGRAMA CURSO ==================
+router.get('/programas-curso', ANY, pcCtrl.getAll);
+router.get('/programas-curso/:id', ANY, pcCtrl.getById);
+router.post('/programas-curso', ADMIN, pcCtrl.create);
+router.patch('/programas-curso/:id', ADMIN, pcCtrl.update);
+router.delete('/programas-curso/:id', ADMIN, pcCtrl.remove);
+
+// avanzado: coordinadores + admin (por ahora)
+router.post('/programas-curso/:id/avanzado', COORD, pcCtrl.upsertAvanzado);
+
+// requisitos (lectura: todos; escritura: coord+admin o solo admin según tu política)
+router.get('/programas-curso/:programaCursoId/requisitos', ANY, pcrCtrl.listByProgramaCurso);
+router.post('/programas-curso/:programaCursoId/requisitos', COORD, pcrCtrl.create);
+router.delete('/programas-curso/:programaCursoId/requisitos', COORD, pcrCtrl.remove);
+router.post('/programas-curso/:programaCursoId/requisitos/bulk', COORD, pcrCtrl.bulkCreate);
+
+// horas
+router.get('/programas-curso/:programaCursoId/horas', ANY, hcCtrl.listByProgramaCurso);
+router.post('/programas-curso/:programaCursoId/horas', COORD, hcCtrl.createForProgramaCurso);
+router.get('/horas-curso/:id', ANY, hcCtrl.getById);
+router.patch('/horas-curso/:id', COORD, hcCtrl.update);
+router.delete('/horas-curso/:id', COORD, hcCtrl.remove);
+
+// docx
+router.post('/programas-curso/:id/docx', ANY, ProgramaDocxController.generate);
+
+// ================== CRONOGRAMAS ==================
+router.get('/cronogramas/curso/:cursoId', ANY, cronCtrl.getByCurso);
+router.put('/cronogramas/curso/:cursoId', COORD, cronCtrl.replaceForCurso);
+router.get('/cronogramas/excel', ANY, cronExcelCtrl.export);
+
+// ================== ESTADOS SERVIDOR (admin) ==================
+router.get('/estados-servidor/active', ADMIN, estadoSrvCtrl.getActive);
+router.get('/estados-servidor/effective', ADMIN, estadoSrvCtrl.effective);
+router.post('/estados-servidor/recalc', ADMIN, estadoSrvCtrl.recalc);
+router.post('/estados-servidor/flows/full', ADMIN, estadoSrvCtrl.activateFlow1);
+router.post('/estados-servidor/flows/cronogramas-only', ADMIN, estadoSrvCtrl.activateCronogramasOnly);
+router.get('/estados-servidor', ADMIN, estadoSrvCtrl.list);
+router.post('/estados-servidor', ADMIN, estadoSrvCtrl.create);
+router.get('/estados-servidor/:id', ADMIN, estadoSrvCtrl.getById);
+router.patch('/estados-servidor/:id', ADMIN, estadoSrvCtrl.update);
+router.delete('/estados-servidor/:id', ADMIN, estadoSrvCtrl.remove);
+
+// ================== USUARIOS ↔ CURSOS (admin) ==================
+router.get('/usuarios/:usuarioId/cursos/disponibles', ADMIN, ucCtrl.listDisponibles);
+router.get('/usuarios/:usuarioId/cursos', ADMIN, ucCtrl.listByUsuario);
+router.put('/usuarios/:usuarioId/cursos', ADMIN, ucCtrl.setForUsuario);
+router.post('/usuarios/:usuarioId/cursos', ADMIN, ucCtrl.addToUsuario);
+router.delete('/usuarios/:usuarioId/cursos/:cursoId', ADMIN, ucCtrl.removeOne);
+router.get('/mi/cursos', COORD, ucCtrl.listMine);
+
+// ================== SOLICITUDES DE CAMBIO ==================
+
+// Admin: listar pendientes
+router.get('/solicitudes-cambio/pendientes', ADMIN, scCtrl.pendientes);
+router.get('/solicitudes-cambio/mias', COORD, scCtrl.mias);
+router.get('/solicitudes-cambio/:id', COORD, scCtrl.getById);
+router.post('/solicitudes-cambio', COORD, scCtrl.crear);
+router.post('/solicitudes-cambio/:id/aprobar', ADMIN, scCtrl.aprobar);
+router.post('/solicitudes-cambio/:id/rechazar', ADMIN, scCtrl.rechazar);
 
 export default router;

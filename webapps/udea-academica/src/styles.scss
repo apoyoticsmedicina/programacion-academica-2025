@@ -1,17 +1,105 @@
-/* 1. Eliminar cualquier scroll a nivel de la ventana */
-html, body {
+/* ===========================================
+   0. Importar fuentes Nunito / Nunito Sans
+   =========================================== */
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Nunito+Sans:wght@300;400;600;700&display=swap");
+
+/* ===========================================
+   1. Variables globales de fuente
+   =========================================== */
+:root {
+  --font-body:
+    "Nunito Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  --font-heading:
+    "Nunito", "Nunito Sans", system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+}
+
+/* ===========================================
+   2. Reset básico
+   =========================================== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* 3. Eliminar cualquier scroll a nivel de la ventana
+      (lo que ya tenías) y aplicar la fuente global      */
+html,
+body {
   margin: 0;
   padding: 0;
   width: 100%;
   height: 100%;
   overflow: hidden;
+
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.4;
+  color: #111827;
+  background-color: #f3f4f6;
 }
 
-/* 2. Asegurar que el root y el <main> de app.html ocupen el 100% y no hagan scroll */
-app-root,
+/* 4. Asegurar que el root y el <main> de app.html
+      ocupen el 100% y no hagan scroll (lo que tenías) */
+app-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden; /* ok, root sin scroll */
+}
+
 app-root main {
   display: flex;
   flex-direction: column;
   height: 100%;
-  overflow: hidden;
+  overflow: auto; /* ✅ aquí sí permitimos scroll */
+}
+
+/* ===========================================
+   5. Tipografía por defecto de textos y títulos
+   =========================================== */
+
+/* Títulos: usan Nunito (más redondita) */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  margin: 0;
+}
+
+/* Párrafos y textos generales */
+p {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+/* Inputs, selects, botones, labels, etc. con la misma fuente de cuerpo */
+button,
+input,
+select,
+textarea,
+label {
+  font-family: var(--font-body);
+}
+
+/* Botones en general un poquito más marcados */
+button,
+.btn {
+  font-weight: 600;
+}
+
+/* Enlaces básicos */
+a {
+  color: #0d7a33;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
 }

@@ -3,55 +3,39 @@ import {
   PrimaryGeneratedColumn,
   Column,
   OneToMany,
-  OneToOne,
+  Index,
 } from "typeorm";
-import { PlanEstudioCurso } from "./PlanEstudioCurso";
-import { CursoDetalle } from "./CursoDetalle";
-import { CursoRequisito } from "./RequisitosCurso";
-import { CursoDocente } from "./CursoDocente";
-import { SolicitudCambio } from "./SolicitudCambio";
+import { PlanEstudioCurso } from "./PlanDeEstudioCurso";
+import { ProgramaCursoRequisito } from "./ProgramaCursoRequisito";
+import { CronogramaGrupo } from "./CronogramaGrupo";
+import { UsuarioCurso } from "./UsuarioCurso";
+
 
 @Entity({ name: "cursos" })
 export class Curso {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column({ type: "varchar", length: 50, unique: true })
+  @Index({ unique: true })
+  @Column({ type: "varchar" })
   codigo!: string;
 
-  @Column({ type: "varchar", length: 255 })
+  @Column({ type: "varchar" })
   nombre!: string;
 
-  @Column({ type: "varchar", length: 50 })
-  nivel!: string;
-
-  @Column({ type: "boolean", default: true })
-  habilitado!: boolean;
-
-  @Column({ type: "int", default: 0 })
-  HTI!: number;
-
-  @Column({ type: "int", default: 0 })
-  HTC!: number;
-
-  @Column({ type: "int", default: 0 })
-  HTE!: number;
-
+  // Relaciones
   @OneToMany(() => PlanEstudioCurso, (pec) => pec.curso)
-  planesEstudio!: PlanEstudioCurso[];
+  planes!: PlanEstudioCurso[];
 
-  @OneToOne(() => CursoDetalle, (det) => det.curso)
-  detalle?: CursoDetalle;
+  @OneToMany(() => ProgramaCursoRequisito, (r) => r.curso)
+  requisitosComoPrincipal!: ProgramaCursoRequisito[];
 
-  @OneToMany(() => CursoRequisito, (cr) => cr.curso)
-  requisitosComoDestino!: CursoRequisito[];
+  @OneToMany(() => ProgramaCursoRequisito, (r) => r.requisito)
+  requisitosComoRequisito!: ProgramaCursoRequisito[];
 
-  @OneToMany(() => CursoRequisito, (cr) => cr.requisito)
-  requisitosComoOrigen!: CursoRequisito[];
+  @OneToMany(() => CronogramaGrupo, (g) => g.curso)
+  gruposCronograma!: CronogramaGrupo[];
 
-  @OneToMany(() => CursoDocente, (cd) => cd.curso)
-  docentes!: CursoDocente[];
-
-  @OneToMany(() => SolicitudCambio, (sc) => sc.curso)
-  solicitudes!: SolicitudCambio[];
+  @OneToMany(() => UsuarioCurso, (uc) => uc.curso)
+  coordinadores!: UsuarioCurso[];
 }

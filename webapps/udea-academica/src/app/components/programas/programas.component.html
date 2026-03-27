@@ -1,5 +1,5 @@
 <div class="programas">
-  <button class="programas__add-btn" (click)="openModal()">
+  <button *hasRole="[ROLES.SUPERADMIN, ROLES.ADMIN]" class="programas__add-btn" (click)="openModal()">
     + Agregar Programa
   </button>
 
@@ -8,14 +8,11 @@
       <!-- Programa -->
       <li class="programas__item">
         <div>
-          <strong>{{ p.nombre }}</strong>
+          <strong>{{ p.codigo }} — {{ p.nombre }}</strong>
           <span class="programas__type">({{ p.tipo }})</span>
         </div>
-        <button
-          class="programas__expand-btn"
-          (click)="toggleExpand(p)"
-          aria-label="Expandir planes"
-        >
+        <button class="programas__expand-btn" (click)="toggleExpand(p)" aria-label="Expandir planes"
+          [attr.aria-expanded]="p.expanded">
           {{ p.expanded ? "▼" : "▶" }}
         </button>
       </li>
@@ -24,58 +21,428 @@
       <li class="programas__plans" *ngIf="p.expanded">
         <ng-container *ngIf="p.planes.length; else noPlanes">
           <ul>
-            <li *ngFor="let plan of p.planes">
-              <div>
-                Plan v{{ plan.version }}
-                <span *ngIf="plan.activo">(activo)</span>
+            <li *ngFor="let plan of p.planes" class="plan">
+              <div class="plan__header">
+                <div>
+                  Plan v{{ plan.version }}
+                  <span *ngIf="plan.activo" class="badge badge--ok">(activo)</span>
+                </div>
               </div>
-              <ul class="programas__courses">
-                <li *ngFor="let assoc of plan.cursos" class="programas__course">
-                  <span class="course__order">{{ assoc.orden }}.</span>
-                  <span class="course__code">{{ assoc.curso.codigo }}</span> —
-                  <span class="course__name">{{ assoc.curso.nombre }}</span>
-                  <span
-                    class="course__badge"
-                    [class.electiva]="assoc.esElectiva"
-                    [class.obligatorio]="!assoc.esElectiva"
-                  >
-                    {{ assoc.esElectiva ? "Electiva" : "Obligatorio" }}
+
+              <!-- Cursos del plan AGRUPADOS POR NIVEL -->
+              <ng-container *ngFor="
+                  let g of getCursosPorNivel(plan);
+                  trackBy: trackByNivel
+                ">
+                <div class="nivel-header">
+                  <span class="badge badge--lvl">
+                    {{ g.nivel ? ("Nivel " + g.nivel) : "Sin nivel" }}
                   </span>
-                </li>
-              </ul>
+                </div>
+
+                <ul class="programas__courses">
+                  <li *ngFor="
+                      let cu of g.cursos;
+                      trackBy: trackByCursoUI
+                    " class="programas__course">
+                    <!-- Fila compacta -->
+                    <div class="programas__course-header">
+                      <button class="course__caret" (click)="toggleCourse(plan, cu)" [attr.aria-expanded]="cu.expanded"
+                        aria-label="Ver detalles del curso">
+                        {{ cu.expanded ? "▼" : "▶" }}
+                      </button>
+
+                      <span class="course__order">{{ cu.assoc.orden }}</span>.
+                      <ng-container *ngIf="cu.assoc.curso as curso; else fallbackCurso">
+                        <span class="course__code">{{ curso.codigo }}</span> —
+                        <span class="course__name">{{ curso.nombre }}</span>
+                      </ng-container>
+                      <ng-template #fallbackCurso>
+                        <span class="course__code">{{ cu.assoc.cursoId }}</span> —
+                        <span class="course__name">Curso #{{ cu.assoc.cursoId }}</span>
+                      </ng-template>
+                      <span class="course__badge" [ngClass]="tipoCursoClass(cu.assoc)">
+                        {{ tipoCursoLabel(cu.assoc) }}
+                      </span>
+                    </div>
+
+                    <!-- Panel de detalles -->
+                    <div class="course__details" *ngIf="cu.expanded">
+                      <!-- Skeleton -->
+                      <div class="skeleton" *ngIf="cu.loading">
+                        <div class="sk-line"></div>
+                        <div class="sk-line w-75"></div>
+                        <div class="sk-line w-50"></div>
+                      </div>
+
+                      <!-- Error -->
+                      <div class="error" *ngIf="cu.error && !cu.loading">
+                        {{ cu.error }}
+                      </div>
+
+                      <!-- Contenido -->
+                      <div class="details__grid" *ngIf="!cu.loading && !cu.error">
+                        <!-- 1. Programa de curso: info general + textos -->
+                        <section class="details__block" *ngIf="cu.principalPrograma as pc">
+                          <h4>Programa de curso</h4>
+
+                          <div class="detail-field">
+                            <div class="label">Unidad académica</div>
+                            <div>{{ pc.unidadAcademica || "—" }}</div>
+                          </div>
+
+                          <div class="detail-field" *ngIf="pc.caracteristicas as car">
+                            <div class="label">Características</div>
+                            <div>{{ car.caracteristicas }}</div>
+                          </div>
+
+                          <div class="detail-field" *ngIf="pc.clase as cl">
+                            <div class="label">Clase</div>
+                            <div>{{ cl.clase }}</div>
+                          </div>
+
+                          <div class="detail-field" *ngIf="pc.modalidad as mod">
+                            <div class="label">Modalidad</div>
+                            <div>{{ mod.modalidad }}</div>
+                          </div>
+
+                          <div class="detail-field" *ngIf="pc.nucleoCurso">
+                            <div class="label">Núcleo del curso</div>
+                            <div>{{ pc.nucleoCurso }}</div>
+                          </div>
+
+                          <div class="detail-field">
+                            <div class="label">Créditos</div>
+                            <div>{{ pc.creditos ?? "—" }}</div>
+                          </div>
+
+                          <div class="detail-field">
+                            <div class="label">Vigencia</div>
+                            <div>{{ pc.vigencia || "—" }}</div>
+                          </div>
+
+                          <div class="detail-field">
+                            <div class="label">Plan</div>
+                            <div>v{{ plan.version }}</div>
+                          </div>
+
+                          <!-- Textos largos -->
+                          <div class="detail-field" *ngIf="pc.perfil">
+                            <div class="label">Relación con el perfil</div>
+                            <div class="muted">{{ pc.perfil }}</div>
+                          </div>
+
+                          <div class="detail-field" *ngIf="pc.intencionalidadesFormativas">
+                            <div class="label">Intencionalidades formativas</div>
+                            <div class="muted">
+                              {{ pc.intencionalidadesFormativas }}
+                            </div>
+                          </div>
+
+                          <div class="detail-field" *ngIf="pc.aportesCursoFormacion">
+                            <div class="label">Aportes del curso a la formación</div>
+                            <div class="muted">
+                              {{ pc.aportesCursoFormacion }}
+                            </div>
+                          </div>
+
+                          <div class="detail-field" *ngIf="pc.descripcionConocimientos">
+                            <div class="label">Descripción de conocimientos / saberes</div>
+                            <div class="muted">
+                              {{ pc.descripcionConocimientos }}
+                            </div>
+                          </div>
+                        </section>
+
+                        <!-- 2. Carga horaria -->
+                        <section class="details__block" *ngIf="getHoras(cu.principalPrograma) as h">
+                          <h4>Carga horaria</h4>
+
+                          <ng-container *ngIf="
+                              h.hTotal || h.hPE || h.hTI || h.hAAT || h.hAAP || h.hAATP;
+                              else noHoras
+                            ">
+                            <div class="detail-field">
+                              <div class="label">Interacción estudiante-profesor</div>
+                              <div><strong>{{ h.hPE }}</strong> h/sem</div>
+                            </div>
+                            <div class="detail-field">
+                              <div class="label">Trabajo independiente</div>
+                              <div><strong>{{ h.hTI }}</strong> h/sem</div>
+                            </div>
+                            <div class="detail-field">
+                              <div class="label">Act. teóricas</div>
+                              <div><strong>{{ h.hAAT }}</strong> h/sem</div>
+                            </div>
+                            <div class="detail-field">
+                              <div class="label">Act. prácticas</div>
+                              <div><strong>{{ h.hAAP }}</strong> h/sem</div>
+                            </div>
+                            <div class="detail-field">
+                              <div class="label">Act. teórico-prácticas</div>
+                              <div><strong>{{ h.hAATP }}</strong> h/sem</div>
+                            </div>
+                            <div class="detail-field">
+                              <div class="label">Total del curso</div>
+                              <div><strong>{{ h.hTotal }}</strong> h</div>
+                            </div>
+                            <div class="detail-field" *ngIf="h.creditos != null">
+                              <div class="label">Créditos (detalle horas)</div>
+                              <div>{{ h.creditos }}</div>
+                            </div>
+                          </ng-container>
+
+                          <ng-template #noHoras>
+                            <div class="muted">No se ha registrado carga horaria.</div>
+                          </ng-template>
+                        </section>
+
+                        <!-- 3. Requisitos -->
+                        <section class="details__block">
+                          <h4>Requisitos</h4>
+                          <ng-container *ngIf="cu.requisitos?.length; else noReq">
+                            <ul class="list">
+                              <li *ngFor="let r of cu.requisitos">
+                                <strong>{{ r.tipo | titlecase }}:</strong>
+                                <ng-container *ngIf="r.curso; else idOnly">
+                                  {{ r.curso.codigo }} — {{ r.curso.nombre }}
+                                </ng-container>
+                                <ng-template #idOnly>Curso #{{ r.cursoId }}</ng-template>
+                              </li>
+                            </ul>
+                          </ng-container>
+                          <ng-template #noReq>
+                            <div class="muted">Sin prerrequisitos/correquisitos.</div>
+                          </ng-template>
+                        </section>
+
+                        <!-- 4. Metodología -->
+                        <section class="details__block" *ngIf="cu.principalPrograma as pcMet">
+                          <h4>Metodología</h4>
+
+                          <!-- Estrategias -->
+                          <div class="detail-field" *ngIf="
+                              $any(pcMet).estrategiasMetodologicas?.length ||
+                              pcMet.metodologias?.length
+                            ">
+                            <div class="label">Estrategias didácticas</div>
+                            <ul class="list">
+                              <ng-container *ngIf="
+                                  $any(pcMet).estrategiasMetodologicas?.length;
+                                  else estrategiasFromMetodologias
+                                ">
+                                <li *ngFor="
+                                    let em of $any(pcMet).estrategiasMetodologicas
+                                  ">
+                                  {{
+                                    em.estrategia?.estrategia ||
+                                      em.estrategia?.nombre ||
+                                      "Estrategia #" + (em.estrategia?.id || "")
+                                  }}
+                                </li>
+                              </ng-container>
+
+                              <ng-template #estrategiasFromMetodologias>
+                                <li *ngFor="let m of pcMet.metodologias">
+                                  {{ getEstrategiaNombre(m) }}
+                                </li>
+                              </ng-template>
+                            </ul>
+                          </div>
+
+                          <!-- Textos comunes: tomamos el primer registro -->
+                          <ng-container *ngIf="
+                              pcMet.metodologias?.length &&
+                                pcMet.metodologias![0] as m;
+                              else textosAlt
+                            ">
+                            <div class="detail-field" *ngIf="m.medios_recursos || $any(m).mediosYRecursos">
+                              <div class="label">Medios y recursos</div>
+                              <div class="muted">
+                                {{ m.medios_recursos || $any(m).mediosYRecursos }}
+                              </div>
+                            </div>
+
+                            <div class="detail-field" *ngIf="m.formas_interaccion || $any(m).formasInteraccion">
+                              <div class="label">Formas de interacción</div>
+                              <div class="muted">
+                                {{ m.formas_interaccion || $any(m).formasInteraccion }}
+                              </div>
+                            </div>
+
+                            <div class="detail-field" *ngIf="
+                                m.estrategias_internacionalizacion ||
+                                $any(m).estrategiasInternacionalizacion
+                              ">
+                              <div class="label">Estrategias de internacionalización</div>
+                              <div class="muted">
+                                {{
+                                  m.estrategias_internacionalizacion ||
+                                    $any(m).estrategiasInternacionalizacion
+                                }}
+                              </div>
+                            </div>
+
+                            <div class="detail-field" *ngIf="m.estrategias_enfoque || $any(m).estrategiasEnfoque">
+                              <div class="label">Estrategias con enfoque diferencial</div>
+                              <div class="muted">
+                                {{ m.estrategias_enfoque || $any(m).estrategiasEnfoque }}
+                              </div>
+                            </div>
+                          </ng-container>
+
+                          <!-- Fallback si viene como pc.metodologia[{...}] -->
+                          <ng-template #textosAlt>
+                            <ng-container *ngIf="$any(pcMet).metodologia?.length">
+                              <ng-container *ngIf="$any(pcMet).metodologia[0] as m2">
+                                <div class="detail-field" *ngIf="m2.medios_recursos || $any(m2).mediosYRecursos">
+                                  <div class="label">Medios y recursos</div>
+                                  <div class="muted">
+                                    {{ m2.medios_recursos || $any(m2).mediosYRecursos }}
+                                  </div>
+                                </div>
+
+                                <div class="detail-field" *ngIf="m2.formas_interaccion || $any(m2).formasInteraccion">
+                                  <div class="label">Formas de interacción</div>
+                                  <div class="muted">
+                                    {{
+                                      m2.formas_interaccion || $any(m2).formasInteraccion
+                                    }}
+                                  </div>
+                                </div>
+
+                                <div class="detail-field" *ngIf="
+                                    m2.estrategias_internacionalizacion ||
+                                    $any(m2).estrategiasInternacionalizacion
+                                  ">
+                                  <div class="label">
+                                    Estrategias de internacionalización
+                                  </div>
+                                  <div class="muted">
+                                    {{
+                                      m2.estrategias_internacionalizacion ||
+                                        $any(m2).estrategiasInternacionalizacion
+                                    }}
+                                  </div>
+                                </div>
+
+                                <div class="detail-field" *ngIf="m2.estrategias_enfoque || $any(m2).estrategiasEnfoque">
+                                  <div class="label">
+                                    Estrategias con enfoque diferencial
+                                  </div>
+                                  <div class="muted">
+                                    {{ m2.estrategias_enfoque || $any(m2).estrategiasEnfoque }}
+                                  </div>
+                                </div>
+                              </ng-container>
+                            </ng-container>
+                          </ng-template>
+                        </section>
+
+                        <!-- 5. Evaluación -->
+                        <section class="details__block" *ngIf="cu.principalPrograma?.evaluaciones?.length">
+                          <h4>Evaluación</h4>
+                          <ul class="list">
+                            <li *ngFor="let ev of cu.principalPrograma!.evaluaciones">
+                              <strong>
+                                {{
+                                  ev.momentosEvaluacion ||
+                                    ev.momentos_evaluacion ||
+                                    "Momento de evaluación"
+                                }}
+                              </strong>
+                              <span *ngIf="ev.porcentaje != null">
+                                — {{ ev.porcentaje }}%
+                              </span>
+                            </li>
+                          </ul>
+                        </section>
+
+                        <!-- 6. Bibliografía -->
+                        <section class="details__block" *ngIf="cu.principalPrograma?.bibliografia?.length">
+                          <h4>Bibliografía</h4>
+                          <ul class="list">
+                            <li *ngFor="let b of cu.principalPrograma!.bibliografia">
+                              <div *ngIf="b.cultura" class="label">
+                                Cultura / zona: {{ b.cultura }}
+                              </div>
+                              <div>{{ b.referencia || "Referencia bibliográfica" }}</div>
+                              <div class="muted" *ngIf="b.palabras_clave || $any(b).palabrasClave">
+                                Palabras clave:
+                                {{ b.palabras_clave || $any(b).palabrasClave }}
+                              </div>
+                            </li>
+                          </ul>
+                        </section>
+
+                        <!-- 7. Comunidad académica -->
+                        <section class="details__block" *ngIf="cu.principalPrograma?.docentes?.length">
+                          <h4>Comunidad académica que participó</h4>
+                          <ul class="list">
+                            <li *ngFor="let pd of cu.principalPrograma!.docentes">
+                              <div>
+                                <strong>
+                                  {{ pd.docente?.nombres }} {{ pd.docente?.apellidos }}
+                                </strong>
+                              </div>
+                              <div class="muted">
+                                {{
+                                  pd.docente?.unidad_academica ||
+                                    pd.docente?.dependencia ||
+                                    "—"
+                                }}
+                                · {{ pd.porcentaje }}%
+                              </div>
+                            </li>
+                          </ul>
+                        </section>
+                      </div>
+                    </div>
+                  </li>
+                </ul>
+                <div class="nivel-total">
+                  <span>Total créditos del nivel:</span>
+                  <strong>{{ getTotalCreditosNivel(plan, g.nivel) }}</strong>
+                </div>
+              </ng-container>
             </li>
           </ul>
         </ng-container>
+
         <ng-template #noPlanes>
-          <div class="programas__no-plans">
-            No hay planes de estudio vinculados
-          </div>
+          <div class="programas__no-plans">No hay planes de estudio vinculados</div>
         </ng-template>
       </li>
     </ng-container>
   </ul>
 
   <!-- Modal de creación -->
-  <div class="modal-backdrop" *ngIf="showModal">
-    <div class="modal">
-      <h2>Nuevo Programa</h2>
-      <form [formGroup]="form" (ngSubmit)="submit()">
-        <label>
-          Nombre
-          <input formControlName="nombre" />
-        </label>
-        <label>
-          Tipo
-          <select formControlName="tipo">
-            <option value="pregrado">Pregrado</option>
-            <option value="posgrado">Posgrado</option>
-          </select>
-        </label>
-        <div class="modal__actions">
-          <button type="button" (click)="closeModal()">Cancelar</button>
-          <button type="submit" [disabled]="form.invalid">Crear</button>
-        </div>
-      </form>
+  <ng-container *hasRole="[ROLES.SUPERADMIN, ROLES.ADMIN]">
+    <div class="modal-backdrop" *ngIf="showModal">
+      <div class="modal">
+        <h2>Nuevo Programa</h2>
+        <form [formGroup]="form" (ngSubmit)="submit()">
+          <label>
+            Nombre
+            <input formControlName="nombre" />
+          </label>
+          <label>
+            Código
+            <input formControlName="codigo" inputmode="numeric" autocomplete="off" placeholder="Ej: 123" />
+          </label>
+          <label>
+            Tipo
+            <select formControlName="tipo">
+              <option value="pregrado">Pregrado</option>
+              <option value="posgrado">Posgrado</option>
+            </select>
+          </label>
+          <div class="modal__actions">
+            <button type="button" (click)="closeModal()">Cancelar</button>
+            <button type="submit" [disabled]="form.invalid">Crear</button>
+          </div>
+        </form>
+      </div>
     </div>
-  </div>
+  </ng-container>
 </div>

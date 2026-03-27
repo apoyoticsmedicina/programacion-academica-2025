@@ -1,1 +1,79 @@
-<p>perfil works!</p>
+<div class="perfil" *ngIf="user as u; else noUser">
+    <div class="perfil__card">
+        <header class="perfil__header">
+            <div class="perfil__avatar">
+                <!-- Si NO hay foto, mostramos iniciales -->
+                <span *ngIf="!u.foto && initials">{{ initials }}</span>
+                <!-- Si hay foto, usamos la imagen -->
+                <img *ngIf="u.foto" [src]="u.foto" [alt]="u.nombre || 'Avatar'" />
+            </div>
+
+            <div class="perfil__main">
+                <h1 class="perfil__name">
+                    {{ u.nombre || 'Usuario' }}
+                </h1>
+                <p class="perfil__email">
+                    {{ u.email }}
+                </p>
+
+                <div class="perfil__tags">
+                    <span class="perfil__tag perfil__tag--role">
+                        {{ roleLabel | uppercase }}
+                    </span>
+                    <span class="perfil__tag perfil__tag--provider">
+                        Google · udea.edu.co
+                    </span>
+                </div>
+            </div>
+        </header>
+
+        <hr class="perfil__divider" />
+
+        <section class="perfil__info">
+            <div class="perfil__row">
+                <div class="perfil__label">ID interno</div>
+                <div class="perfil__value">#{{ u.id }}</div>
+            </div>
+
+            <div class="perfil__row">
+                <div class="perfil__label">Correo</div>
+                <div class="perfil__value">
+                    {{ u.email }}
+                </div>
+            </div>
+
+            <div class="perfil__row">
+                <div class="perfil__label">Rol en el sistema</div>
+                <div class="perfil__value">
+                    {{ roleLabel }}
+                </div>
+            </div>
+        </section>
+
+        <section class="perfil__notice">
+            Sesión iniciada a través de Google. Solo se permiten cuentas
+            institucionales <strong>&#64;udea.edu.co</strong>.
+        </section>
+
+        <footer class="perfil__actions">
+            <button type="button" class="btn btn--ghost" (click)="goDashboard()">
+                ← Volver al dashboard
+            </button>
+
+            <button type="button" class="btn btn--primary" (click)="logout()">
+                Cerrar sesión
+            </button>
+        </footer>
+    </div>
+</div>
+
+<ng-template #noUser>
+    <div class="perfil__card">
+        <p>No se encontró la información de usuario.</p>
+        <div class="perfil__actions">
+            <button type="button" class="btn btn--primary" (click)="logout()">
+                Volver a iniciar sesión
+            </button>
+        </div>
+    </div>
+</ng-template>

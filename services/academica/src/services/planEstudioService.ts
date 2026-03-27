@@ -1,74 +1,157 @@
-// planEstudioService.ts
-
+// src/services/planEstudioService.ts
 import { Repository } from 'typeorm';
-import { PlanEstudio } from '../entities/PlanEstudio';
-import { ProgramaAcademico } from '../entities/ProgramaAcademico';
+import { PlanDeEstudio } from '../entities/PlanDeEstudio';
+import { env } from '../config/env';
 
-export class PlanEstudioService {
-  constructor(private repo: Repository<PlanEstudio>) {}
+export type ListPlanesParams = {
+  page?: number;
+  pageSize?: number;
+  q?: string;              // busca por "version"
+  programa_id?: number;
+  id_cohorte?: number;
+  activo?: 'true' | 'false';
+  niveles?: string;
+};
 
-  getAll() {
-    return this.repo.find({
-      relations: ['programa', 'registros', 'cursos']
-    });
+export class PlanesService {
+  constructor(private repo: Repository<PlanDeEstudio>) { }
+
+  private normalize(dto: Partial<PlanDeEstudio>) {
+    if (dto.version) dto.version = dto.version.trim();
+
+    if (dto.niveles !== undefined) {
+      const raw = dto.niveles;
+      const n = typeof raw === 'number' ? raw : Number(String(raw).trim());
+      dto.niveles = Number.isFinite(n) ? Math.trunc(n) : NaN;
+    }
+
+    return dto;
   }
-  
-  
-  getByPrograma(programaId: number) {
-    return this.repo.find({
-      where: { programa: { id: programaId } },
-      relations: ['programa', 'registros', 'cursos']
-    });
+
+  private validateNiveles(niveles: any) {
+    if (niveles === undefined) return; // en update puede no venir
+    if (!Number.isInteger(niveles) || niveles <= 0) {
+      const err: any = new Error('niveles debe ser un entero positivo');
+      err.status = 400;
+      throw err;
+    }
+  }
+
+  async getAll(params: ListPlanesParams = {}) {
+    const page = Math.max(1, Number(params.page || 1));
+
+    const take = Math.min(
+      env.pagination.maxPageSize,
+      Math.max(1, Number(params.pageSize || env.pagination.defaultPageSize)),
+    );
+    const skip = (page - 1) * take;
+
+    const qb = this.repo
+      .createQueryBuilder('p')
+      .leftJoinAndSelect('p.programa', 'prog')
+      .leftJoinAndSelect('p.cohorte', 'coh')
+      .loadRelationCountAndMap('p.totalCursos', 'p.cursos')
+      .orderBy('p.id', 'DESC')
+      .skip(skip)
+      .take(take);
+
+    if (params.q) {
+      qb.andWhere('p.version ILIKE :q', { q: `%${params.q.trim()}%` });
+    }
+    if (params.programa_id) {
+      qb.andWhere('prog.id = :pid', { pid: Number(params.programa_id) });
+    }
+    if (params.id_cohorte) {
+      qb.andWhere('coh.id = :cid', { cid: Number(params.id_cohorte) });
+    }
+    if (params.activo === 'true') qb.andWhere('p.activo = true');
+    if (params.activo === 'false') qb.andWhere('p.activo = false');
+
+    // ✅ filtro opcional por niveles
+    if (params.niveles != null && String(params.niveles).trim() !== '') {
+      const n = Number(String(params.niveles).trim());
+      if (Number.isFinite(n)) qb.andWhere('p.niveles = :niv', { niv: Math.trunc(n) });
+    }
+
+    const [items, total] = await qb.getManyAndCount();
+    return { items, total, page, pageSize: take };
   }
 
   getById(id: number) {
     return this.repo.findOne({
       where: { id },
-      relations: ['programa', 'registros', 'cursos']
+      relations: [
+        'programa',
+        'cohorte',
+        'cursos',
+        'cursos.curso',
+        'cursos.tipo',
+      ],
     });
   }
 
-  create(dto: Partial<PlanEstudio>) {
-    return this.repo.save(dto);
-  }
+  async create(dto: {
+    programa_id: number;
+    version: string;
+    id_cohorte: number;
+    activo?: boolean;
+    niveles: number | string; // ✅ nuevo
+  }) {
+    this.normalize(dto as any);
 
-  async update(
-    id: number,
-    dto: { programaId?: number; version?: string }
-  ): Promise<PlanEstudio | null> {
-    // 1) Buscamos el plan original (con el programa relacionado)
-    const actual = await this.repo.findOne({
-      where: { id },
-      relations: ['programa'],
+    // ✅ requerido al crear
+    if ((dto as any).niveles === undefined) {
+      const err: any = new Error('niveles es obligatorio');
+      err.status = 400;
+      throw err;
+    }
+    this.validateNiveles((dto as any).niveles);
+
+    const dup = await this.repo.findOne({
+      where: {
+        programa: { id: dto.programa_id } as any,
+        version: dto.version,
+        cohorte: { id: dto.id_cohorte } as any,
+      },
+      relations: ['programa', 'cohorte'],
     });
-    if (!actual) return null;
-
-    // 2) Desactivamos la fila existente
-    actual.activo = false;
-    await this.repo.save(actual);
-
-    // 3) Si no vino nueva versión, devolvemos el “actual” desactivado
-    if (!dto.version || dto.version === actual.version) {
-      return actual;
+    if (dup) {
+      const err: any = new Error('Ya existe un plan con ese Programa + Versión + Cohorte');
+      err.status = 409;
+      throw err;
     }
 
-    // 4) Cargamos el programa (si viniera otro, o reusamos el mismo)
-    const programaRepo = this.repo.manager.getRepository(ProgramaAcademico);
-    const programa = dto.programaId
-      ? await programaRepo.findOneBy({ id: dto.programaId })
-      : actual.programa!;
-    if (!programa) throw new Error('Programa no encontrado');
-
-    // 5) Creamos y guardamos el nuevo plan con la nueva versión
-    const nuevo = this.repo.create({
+    const ent = this.repo.create({
       version: dto.version,
-      activo: true,
-      programa,
+      activo: dto.activo ?? true,
+      niveles: (dto as any).niveles, // ✅
+      programa: { id: dto.programa_id } as any,
+      cohorte: { id: dto.id_cohorte } as any,
     });
-    return this.repo.save(nuevo);
+
+    await this.repo.save(ent);
+    return this.getById(ent.id);
   }
 
-  remove(id: number) {
-    return this.repo.delete(id);
+  async update(id: number, dto: Partial<PlanDeEstudio>) {
+    this.normalize(dto as any);
+
+    // ✅ si viene niveles en update, validar
+    if ((dto as any).niveles !== undefined) {
+      this.validateNiveles((dto as any).niveles);
+    }
+
+    await this.repo.update({ id }, dto);
+    const updated = await this.getById(id);
+    if (!updated) {
+      const err: any = new Error('Plan de estudio no encontrado');
+      err.status = 404;
+      throw err;
+    }
+    return updated;
+  }
+
+  async remove(id: number) {
+    await this.repo.delete(id);
   }
 }

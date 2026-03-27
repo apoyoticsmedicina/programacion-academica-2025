@@ -1,120 +1,841 @@
-<!-- src/app/components/cursos/cursos.component.html -->
-
-<div class="cursos">
+<div class="cursos" *ngIf="!showProgScreen && !showAvanzadoScreen; else innerScreens">
   <div class="cursos__actions">
-    <button class="cursos__add-btn" (click)="openModal()">
+    <input type="search" class="inputSerch" placeholder="Buscar por código o nombre…" [(ngModel)]="qCursos"
+      (ngModelChange)="applyCursosFilter()" />
+    <button *hasRole="[ROLES.SUPERADMIN, ROLES.ADMIN]" class="cursos__add-btn" (click)="openModal()">
       + Agregar Curso
     </button>
-    <button class="cursos__link-btn" (click)="openLinkModal()">
+
+    <button *hasRole="[ROLES.SUPERADMIN, ROLES.ADMIN]" class="cursos__link-btn" (click)="openLinkModal()">
       ↔ Vincular a Plan
     </button>
   </div>
 
   <ul class="cursos__list">
-    <li *ngFor="let c of cursos" class="cursos__item">
+    <li *ngFor="let c of filteredCursos; trackBy: trackByCursoId" class="cursos__item">
       <div class="cursos__info">
-        <strong>{{ c.codigo }}</strong> — {{ c.nombre }}
-        <em>({{ c.nivel }})</em>
-        <span *ngIf="!c.habilitado" class="badge inactivo">Inhabilitado</span>
+        <strong>{{ c.codigo }}</strong> — {{ c.nombre | titleCaseAll }}
       </div>
-      <div class="cursos__meta">
-        HTI: {{ c.HTI }} — HTC: {{ c.HTC }} — HTE: {{ c.HTE }}
+
+      <div class="cursos__row-actions">
+        <button *hasRole="[ROLES.SUPERADMIN, ROLES.ADMIN]" class="btn" (click)="openProgScreen(c)">
+          Asignar programa
+        </button>
+
+        <button *hasRole="[ROLES.SUPERADMIN, ROLES.ADMIN]" class="btn" (click)="openAvanzadoScreen(c.id)">
+          Avanzado
+        </button>
+        <button class="btn" (click)="toggleProgramas(c.id)">
+          {{ (programasPorCurso[c.id]?.open ? "Ocultar" : "Ver") | titleCaseAll }} programas
+          asignados
+        </button>
+      </div>
+
+      <div class="cursos__programas" *ngIf="programasPorCurso[c.id]?.open">
+        <div class="state" *ngIf="programasPorCurso[c.id]?.loading">
+          Cargando…
+        </div>
+        <div class="state error" *ngIf="programasPorCurso[c.id]?.error">
+          {{ programasPorCurso[c.id].error | titleCaseAll }}
+        </div>
+        <div class="state" *ngIf="
+            !programasPorCurso[c.id]?.loading &&
+            !programasPorCurso[c.id]?.items?.length
+          ">
+          No hay programas asignados para este curso.
+        </div>
+
+        <!-- Tarjeta única de previsualización -->
+        <ng-container *ngIf="getProgramaCursoPreview(c.id) as pc">
+          <div class="programa-card programa-card--full">
+            <!-- Encabezado -->
+            <div class="pc-head">
+              <div class="pc-title">
+                <strong>Programas:</strong>
+                <span>{{ getProgramasLabel(c.id) | titleCaseAll }}</span>
+              </div>
+              <div class="pc-sub">
+                Plan v{{ pc.plan?.version || "—" | titleCaseAll}}
+                <ng-container *ngIf="pc.vigencia">
+                  · vigencia {{ pc.vigencia | titleCaseAll }}
+                </ng-container>
+              </div>
+            </div>
+
+            <!-- Datos básicos -->
+            <div class="pc-section">
+              <div class="pc-grid">
+                <div>
+                  <div class="lbl">Unidad académica</div>
+                  <div>
+                    {{
+                      (pc.unidadAcademica || $any(pc)["unidad_academica"] || "—")
+                        | titleCaseAll
+                    }}
+                  </div>
+                </div>
+
+                <div>
+                  <div class="lbl">Características</div>
+                  <div>{{ (pc.caracteristicas?.caracteristicas || "—") | titleCaseAll }}</div>
+                </div>
+
+                <div>
+                  <div class="lbl">Clase</div>
+                  <div>{{ (pc.clase?.clase || "—") | titleCaseAll }}</div>
+                </div>
+
+                <div>
+                  <div class="lbl">Modalidad</div>
+                  <div>{{ (pc.modalidad?.modalidad || "—") | titleCaseAll }}</div>
+                </div>
+
+                <div class="span-2">
+                  <div class="lbl">Núcleo</div>
+                  <div>
+                    {{
+                      (pc.nucleoCurso || $any(pc)["nucleo_curso"] || "—")
+                        | titleCaseAll
+                    }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Requisitos -->
+            <div class="pc-section pc-section--req">
+              <div class="sec-title">Requisitos</div>
+
+              <div class="pc-req-grid">
+                <div class="pc-req-card">
+                  <div class="pc-req-title">Prerrequisitos</div>
+                  <div class="pc-req-text">
+                    {{ getPrerrequisitosLabel(pc) | titleCaseAll }}
+                  </div>
+                </div>
+
+                <div class="pc-req-card">
+                  <div class="pc-req-title">Correquisitos</div>
+                  <div class="pc-req-text">
+                    {{ getCorrequisitosLabel(pc) | titleCaseAll }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
+
+
+            <!-- Horas y créditos -->
+            <div class="pc-section" *ngIf="$any(pc).horas?.length">
+              <div class="sec-title">Horas y créditos</div>
+              <table class="mini">
+                <thead>
+                  <tr>
+                    <th>Interacción E-P</th>
+                    <th>Trabajo Indep.</th>
+                    <th>Act. Teóricas</th>
+                    <th>Act. Prácticas</th>
+                    <th>Teórico-Prácticas</th>
+                    <th>Total semestre</th>
+                    <th>Créditos</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let h of $any(pc).horas">
+                    <td>{{ h.hSemanalesPE ?? h.h_semanales_p_e ?? "0" }}</td>
+                    <td>{{ h.hSemanalesTI ?? h.h_semanales_t_i ?? "0" }}</td>
+                    <td>{{ h.hSemanalesAAT ?? h.h_semanales_a_a_t ?? "0" }}</td>
+                    <td>{{ h.hSemanalesAAP ?? h.h_semanales_a_a_p ?? "0" }}</td>
+                    <td>
+                      {{ h.hSemanalesAATP ?? h.h_semanales_a_a_t_p ?? "0" }}
+                    </td>
+                    <td>{{ h.hTotalesCurso ?? h.h_totales_curso ?? "0" }}</td>
+                    <td>
+                      {{
+                        h.creditosCurso ??
+                          h.creditos_curso ??
+                          pc["creditos"] ??
+                          "—"
+                      }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <!-- Propósitos y descripción -->
+            <div class="pc-section" *ngIf="
+              pc.perfil ||
+              pc.intencionalidadesFormativas ||
+              pc.aportesCursoFormacion ||
+              pc.descripcionConocimientos
+            ">
+              <div class="sec-title">Propósitos y descripción</div>
+              <div class="pc-grid">
+                <div class="span-2" *ngIf="pc.perfil">
+                  <div class="lbl">Relación con el perfil</div>
+                  <div>{{ pc.perfil | titleCaseAll }}</div>
+                </div>
+
+                <div class="span-2" *ngIf="pc.intencionalidadesFormativas">
+                  <div class="lbl">Intencionalidades formativas</div>
+                  <div>{{ pc.intencionalidadesFormativas | titleCaseAll }}</div>
+                </div>
+
+                <div class="span-2" *ngIf="pc.aportesCursoFormacion">
+                  <div class="lbl">Aportes a la formación</div>
+                  <div>{{ pc.aportesCursoFormacion | titleCaseAll }}</div>
+                </div>
+
+                <div class="span-2" *ngIf="pc.descripcionConocimientos">
+                  <div class="lbl">Descripción de conocimientos/saberes</div>
+                  <div>{{ pc.descripcionConocimientos | titleCaseAll }}</div>
+                </div>
+              </div>
+            </div>
+
+
+            <!-- Metodología -->
+            <!-- Metodología -->
+            <div class="pc-section" *ngIf="$any(pc).metodologias?.length">
+              <div class="sec-title">Metodología</div>
+              <div class="pc-grid">
+                <!-- Usamos solo el primer registro para los textos comunes -->
+                <div class="span-2" *ngIf="$any(pc).metodologias[0] as m0">
+                  <div class="lbl">Estrategias didácticas</div>
+                  <ul class="mt-4">
+                    <li *ngFor="let m of $any(pc).metodologias">
+                      {{ getEstrategiaNombre(m) | titleCaseAll }}
+                    </li>
+                  </ul>
+
+                  <div class="lbl mt-6">Medios y recursos</div>
+                  <div>{{ (m0.medios_recursos || "—") | titleCaseAll }}</div>
+
+                  <div class="lbl mt-6">Formas de interacción</div>
+                  <div>{{ (m0.formas_interaccion || "—") | titleCaseAll }}</div>
+
+                  <div class="lbl mt-6">
+                    Estrategias de internacionalización
+                  </div>
+                  <div>
+                    {{ (m0.estrategias_internacionalizacion || "—") | titleCaseAll }}
+                  </div>
+
+                  <div class="lbl mt-6">
+                    Estrategias con enfoque diferencial
+                  </div>
+                  <div>{{ (m0.estrategias_enfoque || "—") | titleCaseAll }}</div>
+                </div>
+              </div>
+            </div>
+
+
+            <!-- Evaluación -->
+            <div class="pc-section" *ngIf="$any(pc).evaluaciones?.length">
+              <div class="sec-title">Evaluación</div>
+              <table class="mini">
+                <thead>
+                  <tr>
+                    <th>Momento</th>
+                    <th>%</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let e of $any(pc).evaluaciones">
+                    <td>
+                      {{
+                        (e.momentosEvaluacion || e.momentos_evaluacion || "")
+                          | titleCaseAll
+                      }}
+                    </td>
+                    <td>{{ e.porcentaje }}%</td>
+                  </tr>
+
+                </tbody>
+              </table>
+            </div>
+
+            <div class="pc-section" *ngIf="$any(pc).bibliografia?.length">
+              <div class="sec-title">Bibliografía</div>
+              <table class="mini">
+                <thead>
+                  <tr>
+                    <th>Cultura / zona</th>
+                    <th>Referencia</th>
+                    <th>Palabras clave</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let b of $any(pc).bibliografia">
+                    <td>{{ (b.cultura || "—") | titleCaseAll }}</td>
+                    <td>{{ (b.referencia || "—") | titleCaseAll }}</td>
+                    <td>{{ (b.palabras_clave || "—") | titleCaseAll }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Comunidad académica -->
+            <div class="pc-section" *ngIf="$any(pc).docentes?.length">
+              <div class="sec-title">Comunidad académica que participó</div>
+              <table class="mini">
+                <thead>
+                  <tr>
+                    <th>Docente</th>
+                    <th>Unidad Académica</th>
+                    <th>Participación</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let pd of $any(pc).docentes">
+                    <td>
+                      {{ pd.docente?.nombres | titleCaseAll }}
+                      {{ pd.docente?.apellidos | titleCaseAll }}
+                    </td>
+                    <td>
+                      {{
+                        (pd.docente?.unidad_academica || pd.docente?.dependencia || "—")
+                          | titleCaseAll
+                      }}
+                    </td>
+                    <td>{{ pd.porcentaje }}%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="pc-head-actions">
+            <button type="button" class="btn btn--ghost" (click)="downloadProgramaDocx(pc.id)">
+              Descargar DOCX
+            </button>
+          </div>
+        </ng-container>
       </div>
     </li>
   </ul>
 
-  <div class="modal-backdrop" *ngIf="showModal">
-    <div class="modal cursos__modal">
-      <h2>Crear Curso</h2>
-      <form [formGroup]="form" (ngSubmit)="submit()">
-        <label>
-          Código
-          <input formControlName="codigo" />
-        </label>
+  <!-- Modal: Crear Curso -->
+  <ng-container *hasRole="[ROLES.SUPERADMIN, ROLES.ADMIN]">
+    <div class="modal-backdrop" *ngIf="showModal">
+      <div class="modal cursos__modal">
+        <h2>Crear Curso</h2>
+        <form [formGroup]="form" (ngSubmit)="submit()">
+          <label>
+            Código
+            <input formControlName="codigo" />
+          </label>
 
-        <label>
-          Nombre
-          <input formControlName="nombre" />
-        </label>
+          <label>
+            Nombre
+            <input formControlName="nombre" />
+          </label>
 
-        <label>
-          Nivel
-          <input formControlName="nivel" />
-        </label>
-
-        <label>
-          <input type="checkbox" formControlName="habilitado" />
-          Habilitado
-        </label>
-
-        <label>
-          HTI
-          <input type="number" formControlName="HTI" />
-        </label>
-
-        <label>
-          HTC
-          <input type="number" formControlName="HTC" />
-        </label>
-
-        <label>
-          HTE
-          <input type="number" formControlName="HTE" />
-        </label>
-
-        <div class="modal__actions">
-          <button type="button" (click)="closeModal()">Cancelar</button>
-          <button type="submit" [disabled]="form.invalid">Crear</button>
-        </div>
-      </form>
+          <div class="modal__actions">
+            <button type="button" (click)="closeModal()">Cancelar</button>
+            <button type="submit" [disabled]="form.invalid">Crear</button>
+          </div>
+        </form>
+      </div>
     </div>
-  </div>
-  <div class="modal-backdrop" *ngIf="showLink">
-    <div class="modal cursos__link-modal">
-      <h2>Vincular Curso a Plan de Estudio</h2>
-      <form [formGroup]="linkForm" (ngSubmit)="submitLink()">
-        <label>
-          Curso:
-          <select formControlName="cursoId">
-            <option [ngValue]="null">— Seleccione —</option>
-            <option *ngFor="let c of cursos" [ngValue]="c.id">
-              {{ c.codigo }} — {{ c.nombre }}
-            </option>
-          </select>
-        </label>
+  </ng-container>
 
-        <label>
-          Plan de Estudio:
-          <select formControlName="planEstudioId">
-            <option [ngValue]="null">— Seleccione —</option>
-            <option *ngFor="let p of planes" [ngValue]="p.id">
-              {{ p.version }} ({{ getProgramaNombre(p.programaId) }})
-            </option>
-          </select>
-        </label>
+  <!-- Modal: Vincular PEC -->
+  <ng-container *hasRole="[ROLES.SUPERADMIN, ROLES.ADMIN]">
+    <div class="modal-backdrop" *ngIf="showLink">
+      <div class="modal cursos__link-modal">
+        <h2>Vincular Curso a Plan de Estudio</h2>
+        <form [formGroup]="linkForm" (ngSubmit)="submitLink()">
+          <label>
+            Curso:
+            <select formControlName="curso_id">
+              <option [ngValue]="null">— Seleccione —</option>
+              <option *ngFor="let c of cursos" [ngValue]="c.id">
+                {{ c.codigo }} — {{ c.nombre | titleCaseAll }}
+              </option>
+            </select>
+          </label>
 
-        <!-- Nuevo campo: ¿Será Electiva dentro de este Plan? -->
-        <label>
-          <input type="checkbox" formControlName="esElectiva" />
-          ¿Electiva en este Plan?
-        </label>
+          <label>
+            Plan de Estudio:
+            <select formControlName="plan_estudio_id">
+              <option [ngValue]="null">— Seleccione —</option>
+              <option *ngFor="let p of planes" [ngValue]="p.id">
+                v{{ p.version }} ({{ (p.programa?.nombre || "—") | titleCaseAll }})
+                {{ p.activo ? "— ACTIVO" : "" }}
+              </option>
+            </select>
+          </label>
 
-        <!-- Nuevo campo: Orden de aparición en el Plan -->
-        <label>
-          Orden:
-          <input
-            type="number"
-            formControlName="orden"
-            min="1"
-            placeholder="1"
-          />
-        </label>
+          <label>
+            Nivel (1 a {{ maxNivelesSeleccionado || '—' }})
+            <select formControlName="nivel" [disabled]="!linkForm.value.plan_estudio_id">
+              <option [ngValue]="null">— Seleccione —</option>
 
-        <div class="modal__actions">
-          <button type="button" (click)="closeLinkModal()">Cancelar</button>
-          <button type="submit" [disabled]="linkForm.invalid">Vincular</button>
-        </div>
-      </form>
+              <option *ngFor="let n of nivelOptions" [ngValue]="n">
+                {{ n }}
+              </option>
+            </select>
+
+            <div class="hint" *ngIf="linkForm.value.plan_estudio_id && !maxNivelesSeleccionado">
+              El plan seleccionado aún no tiene número de niveles configurado.
+            </div>
+          </label>
+
+          <label>
+            Tipo de curso
+            <select formControlName="tipo_curso_id">
+              <option [ngValue]="null">— Seleccione —</option>
+              <option *ngFor="let t of tipoCursoList" [ngValue]="t.id">
+                {{ t.tipo | titleCaseAll }}
+              </option>
+            </select>
+          </label>
+
+          <div class="modal__actions">
+            <button type="button" (click)="closeLinkModal()">Cancelar</button>
+            <button type="submit" [disabled]="linkForm.invalid">Vincular</button>
+          </div>
+        </form>
+      </div>
     </div>
-  </div>
+  </ng-container>
 </div>
+
+<!-- ===== Pantallas internas (Asignar / Avanzado) ===== -->
+<ng-template #innerScreens>
+  <ng-container *hasRole="[ROLES.SUPERADMIN, ROLES.ADMIN]">
+    <!-- Asignar Programa -->
+    <div class="asignar asignar--safe-bottom" *ngIf="showProgScreen">
+      <div class="asignar__bar">
+        <button class="btn btn--ghost" (click)="closeProgScreen()">
+          ← Volver
+        </button>
+        <h2>Asignar programa al curso #{{ progCurso_ctx.cursoId }}</h2>
+      </div>
+
+      <form [formGroup]="progForm" (ngSubmit)="submitProg()" class="asignar__form">
+        <label>
+          Plan de estudio del curso
+          <select formControlName="planEstudioId" (change)="onPlanSelected($any($event.target).value)">
+            <option [ngValue]="null">— Seleccione —</option>
+            <option *ngFor="let pl of progCurso_ctx.planesDePrograma" [ngValue]="pl.id">
+              {{ $any(pl).programa?.nombre || "Programa" }} — v{{ pl.version }}
+            </option>
+          </select>
+        </label>
+
+        <label *ngIf="progCurso_ctx.semestresVigencia?.length">
+          Semestre de vigencia
+          <select formControlName="semestre_vigencia">
+            <option *ngFor="let s of progCurso_ctx.semestresVigencia" [ngValue]="s">
+              {{ s }}
+            </option>
+          </select>
+        </label>
+
+        <label>
+          Unidad académica
+          <input formControlName="unidad_academica" readonly />
+        </label>
+
+
+        <label>
+          Características
+          <select formControlName="id_caracteristicas">
+            <option [ngValue]="null">— Seleccione —</option>
+            <option *ngFor="let it of progCurso_ctx.carList" [ngValue]="it.id">
+              {{ it.caracteristicas | titleCaseAll }}
+            </option>
+          </select>
+        </label>
+
+        <label>
+          Clase
+          <select formControlName="id_clase_curso">
+            <option [ngValue]="null">— Seleccione —</option>
+            <option *ngFor="let it of progCurso_ctx.claseList" [ngValue]="it.id">
+              {{ it.clase | titleCaseAll }}
+            </option>
+          </select>
+          <div class="hint" *ngIf="progCurso_ctx.claseLocked">
+            La clase la define el plan seleccionado.
+          </div>
+        </label>
+
+        <label>
+          Modalidad
+          <select formControlName="id_modalidad_curso">
+            <option [ngValue]="null">— Seleccione —</option>
+            <option *ngFor="let it of progCurso_ctx.modalidadList" [ngValue]="it.id">
+              {{ it.modalidad | titleCaseAll }}
+            </option>
+          </select>
+        </label>
+
+        <label>
+          Núcleo (opcional)
+          <input formControlName="nucleo_curso" />
+        </label>
+
+        <div class="alert" *ngIf="
+          progForm.value.planEstudioId &&
+          !progCurso_ctx.loadingPEC &&
+          progCurso_ctx.pecCheckDone &&
+          !progCurso_ctx.pecEncontrado
+        ">
+          Este curso no está vinculado al plan seleccionado. Primero crea la
+          asociación Curso ↔ Plan.
+        </div>
+
+        <div class="grid-2">
+          <div>
+
+            <label>
+              <div class="lbl">Número de semanas</div>
+              <input type="number" formControlName="numero_semanas" min="1" />
+            </label>
+            <div class="sec-title">Horas semanales (campos numéricos)</div>
+
+            <label>Interacción estudiante-profesor
+              <input type="number" formControlName="h_semanales_p_e" min="0" />
+            </label>
+
+            <label>Trabajo independiente
+              <input type="number" formControlName="h_semanales_t_i" min="0" />
+            </label>
+
+            <label>Actividades teóricas
+              <input type="number" formControlName="h_semanales_a_a_t" min="0" />
+            </label>
+
+            <label>Actividades prácticas
+              <input type="number" formControlName="h_semanales_a_a_p" min="0" />
+            </label>
+
+            <label>Actividades teórico-prácticas
+              <input type="number" formControlName="h_semanales_a_a_t_p" min="0" />
+            </label>
+
+            <label class="readonly">
+              <div class="lbl">Horas totales del curso (semestre)</div>
+              <input type="number" formControlName="h_totales_curso" readonly />
+            </label>
+
+            <label>
+              <div class="lbl">Créditos del curso</div>
+              <input type="number" formControlName="creditos_curso" min="0" step="0.1" />
+            </label>
+          </div>
+
+          <!-- Requisitos -->
+          <div class="req-box">
+            <div class="req-box__title">Requisitos</div>
+
+            <div class="req-group">
+              <div class="req-row">
+                <label class="checkline">
+                  <input type="checkbox" formControlName="sin_prerrequisitos" (change)="toggleNoTiene('pre')" />
+                  <span>No tiene prerrequisitos</span>
+                </label>
+              </div>
+
+              <label class="req-label">
+                <span class="lbl">Prerrequisitos</span>
+
+                <div class="req-list" [class.disabled]="progForm.get('sin_prerrequisitos')?.value">
+                  <ng-container *ngIf="progCurso_ctx.cursosDelPlan?.length; else noPreOps">
+                    <label class="checkbox" *ngFor="let c of progCurso_ctx.cursosDelPlan">
+                      <input type="checkbox" [disabled]="progForm.get('sin_prerrequisitos')?.value"
+                        [checked]="isReqChecked('pre', c.id)" (change)="
+                        onReqToggle('pre', c.id, $any($event.target).checked)
+                      " />
+                      <span>{{ c.codigo }} — {{ c.nombre }}</span>
+                    </label>
+                  </ng-container>
+                </div>
+              </label>
+
+              <ng-template #noPreOps>
+                <div class="muted small">
+                  No hay otros cursos en el plan seleccionado.
+                </div>
+              </ng-template>
+            </div>
+
+            <div class="req-group">
+              <div class="req-row">
+                <label class="checkline">
+                  <input type="checkbox" formControlName="sin_corequisitos" (change)="toggleNoTiene('co')" />
+                  <span>No tiene correquisitos</span>
+                </label>
+              </div>
+
+              <label class="req-label">
+                <span class="lbl">Correquisitos</span>
+
+                <div class="req-list" [class.disabled]="progForm.get('sin_corequisitos')?.value">
+                  <ng-container *ngIf="progCurso_ctx.cursosDelPlan?.length; else noCoOps">
+                    <label class="checkbox" *ngFor="let c of progCurso_ctx.cursosDelPlan">
+                      <input type="checkbox" [disabled]="progForm.get('sin_corequisitos')?.value"
+                        [checked]="isReqChecked('co', c.id)" (change)="
+                        onReqToggle('co', c.id, $any($event.target).checked)
+                      " />
+                      <span>{{ c.codigo }} — {{ c.nombre }}</span>
+                    </label>
+                  </ng-container>
+                </div>
+              </label>
+
+              <ng-template #noCoOps>
+                <div class="muted small">
+                  No hay otros cursos en el plan seleccionado.
+                </div>
+              </ng-template>
+            </div>
+          </div>
+        </div>
+
+        <div class="asignar__actions asignar__actions--sticky">
+          <button type="button" class="btn btn--ghost" (click)="closeProgScreen()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn btn--primary" [disabled]="progForm.invalid || !progCurso_ctx.pecEncontrado">
+            Asignar programa
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Pantalla Avanzado -->
+    <div class="asignar asignar--safe-bottom" *ngIf="showAvanzadoScreen">
+      <div class="asignar__bar">
+        <button class="btn btn--ghost" (click)="closeAvanzadoScreen()">
+          ← Volver
+        </button>
+        <h2>Detalles avanzados del programa</h2>
+      </div>
+
+      <form [formGroup]="avanzadoForm" (ngSubmit)="submitAvanzado()" class="asignar__form asignar__form--advanced"
+        novalidate>
+        <label class="span-1">
+          <span class="lbl">2. RELACIONES CON EL PERFIL</span>
+          <textarea rows="3" formControlName="perfil"
+            placeholder="Propósito del curso frente a los perfiles del programa."></textarea>
+        </label>
+
+        <label class="span-1">
+          <span class="lbl">3. INTENCIONALIDADES FORMATIVAS</span>
+          <textarea rows="3" formControlName="intencionalidades_formativas"
+            placeholder="Problemas/Propósitos de formación..."></textarea>
+        </label>
+
+        <label class="span-1">
+          <span class="lbl">4. APORTES DEL CURSO A LA FORMACIÓN INTEGRAL Y A LA FORMACIÓN EN
+            INVESTIGACIÓN</span>
+          <textarea rows="3" formControlName="aportes_curso_formacion"></textarea>
+        </label>
+
+        <label class="span-1">
+          <span class="lbl">5. DESCRIPCIÓN DE LOS CONOCIMIENTOS Y/O SABERES</span>
+          <textarea rows="3" formControlName="descripcion_conocimientos">
+        </textarea>
+        </label>
+
+        <!-- 6. METODOLOGÍA -->
+        <div class="fieldset span-1">
+          <div class="legend">6. METODOLOGÍA</div>
+
+          <!-- Estrategias didácticas (múltiple) -->
+          <div class="req-group">
+            <span class="lbl">Estrategias didácticas (selección múltiple)</span>
+            <div class="req-list">
+              <label class="checkbox" *ngFor="let e of avanzado_ctx.estrategias">
+                <input type="checkbox" [checked]="isEstrategiaChecked(e.id)"
+                  (change)="onEstrategiaToggle(e.id, $any($event.target).checked)" />
+                <span>{{
+                e.nombre || e.descripcion || "Estrategia " + e.id | titleCaseAll
+              }}</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <label>
+              <span class="lbl">Medios y recursos</span>
+              <textarea rows="2" formControlName="medios_recursos"></textarea>
+            </label>
+
+            <label>
+              <span class="lbl">Formas de interacción</span>
+              <textarea rows="2" formControlName="formas_interaccion"></textarea>
+            </label>
+
+            <label>
+              <span class="lbl">Estrategias de internacionalización</span>
+              <textarea rows="2" formControlName="estrategias_internacionalizacion"></textarea>
+            </label>
+
+            <label class="span-1">
+              <span class="lbl">Estrategias con enfoque diferencial</span>
+              <textarea rows="2" formControlName="estrategias_enfoque"></textarea>
+            </label>
+          </div>
+        </div>
+
+        <!-- 7. EVALUACIÓN -->
+        <div class="fieldset span-1">
+          <div class="legend">7. EVALUACIÓN</div>
+
+          <div class="eval-header">
+            <div>Momentos de evaluación</div>
+            <div>Porcentajes</div>
+            <div></div>
+          </div>
+
+          <div class="eval-list">
+            <div class="eval-row" *ngFor="let row of avanzado_ctx.evalRows; let i = index">
+              <input type="text" [value]="row.momentos_evaluacion" (input)="
+                onEvalChange(
+                  i,
+                  'momentos_evaluacion',
+                  $any($event.target).value
+                )
+              " placeholder="Momento..." />
+
+              <input type="number" min="0" max="100" step="1" [value]="row.porcentaje"
+                (input)="onEvalChange(i, 'porcentaje', $any($event.target).value)" placeholder="%" />
+
+              <button type="button" class="btn" (click)="removeEvalRow(i)">
+                Eliminar
+              </button>
+            </div>
+          </div>
+
+          <div class="eval-summary" *ngIf="avanzado_ctx.evalRows?.length">
+            <span>Total: {{ evalTotalPorcentaje }}%</span>
+            <span class="error" *ngIf="!evalSumaValida">
+              La suma de los porcentajes debe ser 100%.
+            </span>
+          </div>
+
+          <button type="button" class="btn" (click)="addEvalRow()">
+            + Agregar momento
+          </button>
+        </div>
+
+        <!-- 8. BIBLIOGRAFÍA -->
+        <div class="fieldset span-1 table-box">
+          <div class="legend">8. BIBLIOGRAFÍA</div>
+
+          <div class="table-box__wrapper">
+            <div class="table-box__header table-box__row">
+              <div class="col col-3">Cultura o zona geográfica</div>
+              <div class="col col-5">Bibliografía</div>
+              <div class="col col-3">Palabras clave</div>
+              <div class="col col-1"></div>
+            </div>
+
+            <div class="table-box__row" *ngFor="let b of avanzado_ctx.biblioRows; let bi = index">
+              <div class="col col-3">
+                <input type="text" [value]="b.cultura | titleCaseAll" (input)="
+                  onBiblioChange(bi, 'cultura', $any($event.target).value)
+                " />
+              </div>
+              <div class="col col-5">
+                <textarea rows="2" [value]="b.bibliografia | titleCaseAll" (input)="
+                  onBiblioChange(bi, 'bibliografia', $any($event.target).value)
+                "></textarea>
+              </div>
+              <div class="col col-3">
+                <input type="text" [value]="b.palabras_clave | titleCaseAll" (input)="
+                  onBiblioChange(
+                    bi,
+                    'palabras_clave',
+                    $any($event.target).value
+                  )
+                " />
+              </div>
+              <div class="col col-1">
+                <button type="button" class="btn" (click)="removeBiblioRow(bi)">
+                  Eliminar
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <button type="button" class="btn" (click)="addBiblioRow()">
+            + Agregar bibliografía
+          </button>
+        </div>
+
+        <!-- 9. COMUNIDAD ACADÉMICA -->
+        <div class="fieldset span-1 table-box">
+          <div class="legend">
+            9. COMUNIDAD ACADÉMICA QUE PARTICIPÓ EN LA ELABORACIÓN DEL
+            MICROCURRÍCULO
+          </div>
+
+          <div class="table-box__wrapper">
+            <div class="table-box__header table-box__row table-box__row--comunidad">
+              <div class="col col-3">Nombres y Apellidos</div>
+              <div class="col col-3">Unidad Académica</div>
+              <div class="col col-2">Porcentaje de participación</div>
+              <div class="col col-1"></div>
+            </div>
+            <div class="table-box__row table-box__row--comunidad"
+              *ngFor="let m of avanzado_ctx.comunidadRows; let ci = index">
+              <div class="col col-3">
+                <select class="comunidad-select" [(ngModel)]="m.docente_id"
+                  (ngModelChange)="onComunidadDocenteChange(ci, $event)" [ngModelOptions]="{ standalone: true }">
+                  <option value="">— Seleccione docente —</option>
+                  <option *ngFor="let d of avanzado_ctx.docentes" [ngValue]="d.id.toString()">
+                    {{ d.nombres | titleCaseAll }} {{ d.apellidos | titleCaseAll }}
+                  </option>
+                </select>
+              </div>
+
+
+              <div class="col col-3">
+                <input type="text" [value]="m.unidad_academica | titleCaseAll" [readonly]="m.fromBackend" (input)="
+                  !m.fromBackend &&
+                    onComunidadChange(
+                      ci,
+                      'unidad_academica',
+                      $any($event.target).value
+                    )
+                " placeholder="" />
+              </div>
+
+              <div class="col col-2">
+                <input type="number" min="0" max="100" [value]="m.porcentaje" (input)="
+                  onComunidadChange(ci, 'porcentaje', $any($event.target).value)
+                " />
+              </div>
+
+              <div class="col col-1">
+                <button type="button" class="btn" (click)="removeComunidadRow(ci)">
+                  Eliminar
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <button type="button" class="btn" (click)="addComunidadRow()">
+            + Agregar participante
+          </button>
+        </div>
+
+        <div class="asignar__actions asignar__actions--sticky">
+          <button type="button" class="btn btn--ghost" (click)="closeAvanzadoScreen()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn btn--primary" [disabled]="!evalSumaValida">
+            Guardar
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </ng-container>
+</ng-template>

@@ -1,22 +1,23 @@
 .programas {
   position: relative;
-  padding: 3rem 1rem 1rem;
-  padding-bottom: 4rem;
+  padding: 1rem 1rem 4rem; // padding-bottom: 4rem;
   height: 100%;
 
+  // ===== Lista principal =====
   &__list {
     list-style: none;
-    margin: 0;
+    margin: 2.75rem 0 0;
     padding: 0;
 
-    & > .programas__item {
+    > .programas__item {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 0.75rem 1rem;
       border: 1px solid #ccc;
-      border-radius: 4px;
+      border-radius: 6px;
       margin-bottom: 0.5rem;
+      background: #fff;
 
       .programas__type {
         color: #666;
@@ -32,50 +33,245 @@
       }
     }
 
-    & > .programas__plans {
-      margin: 0 0 0.5rem 2rem;
+    > .programas__plans {
+      margin: 0 0 0.75rem 2rem;
       padding: 0;
+
+      .plan {
+        margin-bottom: 0.75rem;
+
+        &__header {
+          font-weight: 600;
+          margin: 0.25rem 0 0.5rem;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+      }
 
       .programas__no-plans {
         font-style: italic;
         color: #999;
       }
 
-      & .programas__courses {
+      // ---- AGRUPACIÓN POR NIVEL ----
+      .nivel-header {
+        margin: 0.75rem 0 0.35rem 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .badge--lvl {
+        background: #eef2ff;
+        color: #3730a3;
+        border-color: #c7d2fe;
+      }
+
+      .nivel-total {
+        margin: 0.35rem 0 0.75rem 1.5rem;
+        padding: 0.45rem 0.75rem;
+        border: 1px dashed #e5e7eb;
+        border-radius: 6px;
+        background: #fafafa;
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+        color: #111827;
+
+        strong {
+          font-weight: 800;
+        }
+      }
+
+      .programas__courses {
         list-style: none;
         margin: 0.25rem 0 0.5rem 1.5rem;
         padding: 0;
 
         .programas__course {
           display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          margin-bottom: 0.25rem;
-          font-size: 0.9rem;
-          color: #333;
-        }
+          flex-direction: column;
+          gap: 0.4rem;
+          margin-bottom: 0.5rem;
+          padding: 0.5rem 0.75rem;
+          border: 1px solid #e5e7eb;
+          border-radius: 6px;
+          background: #fff;
 
-        .course__order {
-          font-weight: bold;
-        }
-        .course__badge {
-          margin-left: auto;
-          padding: 0.2rem 0.5rem;
-          border-radius: 3px;
-          font-size: 0.8rem;
-        }
-        .course__badge.electiva {
-          background: #fff4e0;
-          color: #8a4500;
-        }
-        .course__badge.obligatorio {
-          background: #e0f7e9;
-          color: #00802b;
+          // Fila compacta
+          > :first-child {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+          }
+
+          .course__caret {
+            background: none;
+            border: 1px solid #ddd;
+            width: 26px;
+            height: 26px;
+            line-height: 24px;
+            border-radius: 6px;
+            cursor: pointer;
+          }
+
+          .course__order {
+            font-weight: 700;
+          }
+          .course__code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+          }
+          .course__name {
+            font-weight: 500;
+          }
+          .course__meta {
+            margin-left: auto;
+            font-size: 0.9rem;
+            color: #555;
+          }
+
+          .course__badge {
+            margin-left: 0.5rem;
+            padding: 0.15rem 0.45rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            border: 1px solid transparent;
+
+            &.electiva {
+              background: #fff4e0;
+              color: #8a4500;
+              border-color: #f4d7a3;
+            }
+            &.obligatorio {
+              background: #e0f7e9;
+              color: #00802b;
+              border-color: #a6e0bf;
+            }
+            &.disabled {
+              background: #f3f4f6;
+              color: #6b7280;
+              border-color: #e5e7eb;
+            }
+          }
+
+          // Panel de detalles
+          .course__details {
+            border-top: 1px dashed #e5e7eb;
+            padding-top: 0.5rem;
+
+            .skeleton {
+              .sk-line {
+                height: 10px;
+                background: #e5e7eb;
+                border-radius: 4px;
+                margin: 6px 0;
+              }
+              .w-75 {
+                width: 75%;
+              }
+              .w-50 {
+                width: 50%;
+              }
+            }
+
+            .error {
+              background: #fde8e8;
+              color: #b91c1c;
+              border: 1px solid #fecaca;
+              padding: 0.5rem 0.6rem;
+              border-radius: 6px;
+            }
+
+            .details__grid {
+              display: grid;
+              grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+              gap: 0.75rem;
+              margin-top: 0.25rem;
+            }
+
+            .details__block {
+              background: #fafafa;
+              border: 1px solid #eee;
+              border-radius: 6px;
+              padding: 0.6rem 0.7rem;
+
+              h4 {
+                margin: 0 0 0.5rem;
+                font-size: 0.95rem;
+              }
+
+              .list {
+                margin: 0;
+                padding-left: 1rem;
+              }
+
+              .chips {
+                list-style: none;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.4rem;
+                margin: 0;
+                padding: 0;
+
+                .chip {
+                  border: 1px solid #e5e7eb;
+                  background: #fff;
+                  border-radius: 999px;
+                  padding: 0.2rem 0.55rem;
+                  font-size: 0.85rem;
+
+                  .chip__meta {
+                    color: #6b7280;
+                  }
+                }
+              }
+
+              .detail-field {
+                margin-bottom: 0.5rem;
+
+                .label {
+                  font-weight: 600;
+                  font-size: 0.9rem;
+                  margin-bottom: 0.2rem;
+                }
+              }
+
+              .muted {
+                color: #6b7280;
+                font-style: italic;
+              }
+            }
+          }
         }
       }
     }
   }
 
+  // Badge genérica
+  .badge {
+    display: inline-block;
+    padding: 0 0.35rem;
+    border-radius: 4px;
+    border: 1px solid #e5e7eb;
+    font-size: 0.8rem;
+
+    &--ok {
+      background: #eef6ee;
+      color: #256629;
+      border-color: #cfe9cf;
+    }
+
+    // badge por nivel
+    &--lvl {
+      padding: 0.15rem 0.55rem;
+      border-radius: 999px;
+      font-weight: 600;
+      background: rgba(0, 0, 0, 0.06);
+    }
+  }
+
+  // Botón agregar
   &__add-btn {
     position: absolute;
     top: 1rem;
@@ -85,41 +281,48 @@
     color: #fff;
     border: none;
     padding: 0.5rem 1rem;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
 
     &:hover {
       background-color: #006622;
     }
   }
 
-  /* Modal */
+  // Modal
   .modal-backdrop {
     position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.4);
-    display: flex; align-items: center; justify-content: center;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .modal {
     background: #fff;
     padding: 2rem;
-    border-radius: 6px;
+    border-radius: 8px;
     width: 320px;
 
-    h2 { margin-top: 0; }
+    h2 {
+      margin-top: 0;
+    }
 
     label {
       display: block;
       margin-bottom: 1rem;
       font-size: 0.9rem;
 
-      input, select {
+      input,
+      select {
         width: 100%;
         padding: 0.5rem;
         margin-top: 0.25rem;
         box-sizing: border-box;
+        border: 1px solid #ccc;
+        border-radius: 6px;
       }
     }
 
@@ -131,11 +334,16 @@
       button {
         padding: 0.4rem 0.8rem;
         border: none;
-        border-radius: 4px;
+        border-radius: 6px;
         cursor: pointer;
       }
-      button[type="button"] { background: #ccc; }
-      button[type="submit"] { background: #00802b; color: #fff; }
+      button[type="button"] {
+        background: #ccc;
+      }
+      button[type="submit"] {
+        background: #00802b;
+        color: #fff;
+      }
     }
   }
 }

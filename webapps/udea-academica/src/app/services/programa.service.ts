@@ -1,18 +1,40 @@
+// src/app/services/programa.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { ProgramaAcademico, CreateProgramaDTO, UpdateProgramaDTO } from '../dto/programas.dto';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '@env/environment';
 
-@Injectable({
-  providedIn: 'root'
-})
+import { ProgramaAcademico, CreateProgramaDTO, UpdateProgramaDTO } from '../dto/programas.dto';
+import { PageResult } from '../dto/pagination.dto';
+
+export type ListProgramasParams = {
+  page?: number;
+  pageSize?: number;
+  q?: string;
+  tipo?: string;
+  codigo?: string | number;
+};
+
+@Injectable({ providedIn: 'root' })
 export class ProgramaService {
-  private base = 'http://localhost:3000/programas';
+  private readonly base = `${environment.apiBaseUrl}/programas`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
-  getAll(): Observable<ProgramaAcademico[]> {
-    return this.http.get<ProgramaAcademico[]>(this.base);
+  getAll(params?: ListProgramasParams): Observable<PageResult<ProgramaAcademico>> {
+    let httpParams = new HttpParams();
+
+    if (params) {
+      if (params.page != null) httpParams = httpParams.set('page', String(params.page));
+      if (params.pageSize != null) httpParams = httpParams.set('pageSize', String(params.pageSize));
+      if (params.q) httpParams = httpParams.set('q', params.q);
+      if (params.tipo) httpParams = httpParams.set('tipo', params.tipo);
+      if (params.codigo != null && String(params.codigo).trim() !== '') {
+        httpParams = httpParams.set('codigo', String(params.codigo));
+      }
+    }
+
+    return this.http.get<PageResult<ProgramaAcademico>>(this.base, { params: httpParams });
   }
 
   getById(id: number): Observable<ProgramaAcademico> {

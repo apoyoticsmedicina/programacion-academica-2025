@@ -1,0 +1,258 @@
+<!-- src/app/components/cronogramas/cronogramas.component.html -->
+
+<div class="cronograma">
+    <header class="cronograma__header">
+        <div>
+            <h2>Cronogramas</h2>
+            <p class="cronograma__subtitle">
+                Cursos que ya tienen un programa de curso asignado, organizados por
+                programa académico y plan de estudio.
+            </p>
+        </div>
+
+        <button *hasRole="[ROLES.SUPERADMIN, ROLES.ADMIN]" type="button" class="btn btn--primary"
+            (click)="downloadExcel()">
+            Exportar a Excel
+        </button>
+    </header>
+
+    <div *ngIf="loading" class="state">Cargando programas…</div>
+
+    <div *ngIf="!loading && error" class="state state--error">
+        {{ error }}
+    </div>
+
+    <div *ngIf="!loading && !error && !programas.length" class="state">
+        No hay programas académicos configurados.
+    </div>
+
+    <section *ngFor="let p of programas" class="cronograma__programa">
+        <button type="button" class="cronograma__programa-header" (click)="toggleExpand(p)">
+            <div class="cronograma__programa-main">
+                <span class="cronograma__programa-name">
+                    {{ p.nombre }}
+                </span>
+                <span class="cronograma__programa-tipo" [class.cronograma__programa-tipo--posgrado]="
+            (p.tipo || '').toLowerCase() === 'posgrado'
+          ">
+                    {{ tipoLabel(p) }}
+                </span>
+            </div>
+            <span class="cronograma__programa-icon">
+                {{ p.expanded ? '▾' : '▸' }}
+            </span>
+        </button>
+
+        <div class="cronograma__planes" *ngIf="p.expanded">
+            <div *ngIf="!p.planes.length" class="state state--small">
+                Este programa no tiene planes activos.
+            </div>
+
+            <article *ngFor="let plan of p.planes" class="cronograma__plan">
+                <header class="cronograma__plan-header">
+                    <div>
+                        <h3>Plan {{ plan.version }}</h3>
+                        <p class="cronograma__plan-subtitle">
+                            Vigencia:
+                            {{ plan.cohorte?.periodo || '—' }}
+                        </p>
+                    </div>
+                </header>
+
+                <div *ngIf="!plan.cursos.length" class="state state--small">
+                    No hay cursos con programa de curso asignado en este plan.
+                </div>
+
+                <div *ngIf="plan.cursos.length" class="cronograma__table-wrapper">
+                    <table class="cronograma__table">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Curso</th>
+                                <th>Créditos</th>
+                                <th>Vigencia</th>
+                                <th>Grupos</th>
+                                <th>Tipo programa</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let c of plan.cursos">
+                                <td>{{ c.curso.codigo }}</td>
+                                <td>{{ c.curso.nombre }}</td>
+                                <td>
+                                    <ng-container *ngIf="getHoras(c.principalPrograma) as h; else sinHoras">
+                                        {{ h.creditos != null ? h.creditos : '—' }}
+                                    </ng-container>
+                                    <ng-template #sinHoras>—</ng-template>
+                                </td>
+                                <td>
+                                    {{ c.principalPrograma?.vigencia || '—' }}
+                                </td>
+                                <td>
+                                    <ng-container *ngIf="c.grupos?.length; else sinGrupos">
+                                        <div class="cronograma__grupos">
+                                            <div *ngFor="let g of c.grupos" class="cronograma__grupo-pill">
+                                                <span class="cronograma__grupo-nombre">
+                                                    {{ g.nombre }}
+                                                </span>
+                                                <span class="cronograma__grupo-docentes"
+                                                    [innerHTML]="resumenGrupo(g)"></span>
+                                            </div>
+                                        </div>
+                                    </ng-container>
+                                    <ng-template #sinGrupos>
+                                        <span class="cronograma__grupo-empty">
+                                            Sin grupos
+                                        </span>
+                                    </ng-template>
+                                </td>
+                                <td>
+                                    {{ tipoLabel(p) }}
+                                </td>
+                                <td>
+                                    <button *hasRole="[ROLES.SUPERADMIN, ROLES.ADMIN]" type="button"
+                                        class="btn btn--ghost" (click)="openCronogramaConfig(p, plan, c)">
+                                        Configurar cronograma
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </article>
+        </div>
+    </section>
+</div>
+
+<!-- ============ MODAL CRONOGRAMA ============ -->
+<ng-container *hasRole="[ROLES.SUPERADMIN, ROLES.ADMIN]">
+    <div class="modal-backdrop" *ngIf="cronModalOpen" role="dialog" aria-modal="true">
+        <div class="modal">
+            <header class="modal__header">
+                <h3 class="modal__title">
+                    Configurar cronograma –
+                    {{ selectedCurso?.curso?.codigo }} ·
+                    {{ selectedCurso?.curso?.nombre }}
+                    <span *ngIf="selectedPrograma">
+                        ({{ tipoLabel(selectedPrograma) }})
+                    </span>
+                </h3>
+                <button type="button" class="modal__close" (click)="closeCronogramaModal()" aria-label="Cerrar">
+                    ×
+                </button>
+            </header>
+
+            <!-- Body POSGRADO -->
+            <div class="modal__body" *ngIf="cronModalMode === 'posgrado'; else pregradoBody">
+                <p class="modal__hint">
+                    Posgrado: normalmente un solo grupo por curso. Puedes asignar uno o
+                    varios docentes y las horas correspondientes.
+                </p>
+
+                <div class="grupo" *ngFor="let g of editGrupos">
+                    <h4 class="grupo__title">{{ g.nombre }}</h4>
+
+                    <div class="grupo__docentes">
+                        <div class="grupo__docente-row" *ngFor="let d of g.docentes; let di = index">
+                            <label class="field">
+                                <span class="field__label">Docente</span>
+                                <select class="input" [(ngModel)]="d.docenteId" [ngModelOptions]="{ standalone: true }">
+                                    <option [ngValue]="null">— Seleccione docente —</option>
+                                    <option *ngFor="let doc of docentes" [ngValue]="doc.id">
+                                        {{ docenteResumen(doc) }}
+                                    </option>
+
+                                </select>
+                            </label>
+
+                            <label class="field field--small">
+                                <span class="field__label">Horas</span>
+                                <input class="input" type="number" min="0" [(ngModel)]="d.horas"
+                                    [ngModelOptions]="{ standalone: true }" />
+                            </label>
+
+                            <button type="button" class="btn btn--ghost btn--sm" (click)="removeDocenteFromGrupo(g, di)"
+                                *ngIf="g.docentes.length > 1">
+                                Quitar
+                            </button>
+                        </div>
+
+                        <button type="button" class="btn btn--ghost btn--sm" (click)="addDocenteToGrupo(g)">
+                            + Añadir docente
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Body PREGRADO -->
+            <ng-template #pregradoBody>
+                <div class="modal__body">
+                    <p class="modal__hint">
+                        Pregrado: puede haber varios grupos por curso. Cada grupo puede
+                        tener uno o varios docentes con sus horas.
+                    </p>
+
+                    <div class="grupo" *ngFor="let g of editGrupos; let gi = index">
+                        <div class="grupo__header">
+                            <label class="field">
+                                <span class="field__label">Nombre del grupo</span>
+                                <input class="input" type="text" [(ngModel)]="g.nombre"
+                                    [ngModelOptions]="{ standalone: true }" />
+                            </label>
+
+                            <button type="button" class="btn btn--ghost btn--sm" (click)="removeGrupo(gi)"
+                                *ngIf="editGrupos.length > 1">
+                                Eliminar grupo
+                            </button>
+                        </div>
+
+                        <div class="grupo__docentes">
+                            <div class="grupo__docente-row" *ngFor="let d of g.docentes; let di = index">
+                                <label class="field">
+                                    <span class="field__label">Docente</span>
+                                    <select class="input" [(ngModel)]="d.docenteId"
+                                        [ngModelOptions]="{ standalone: true }">
+                                        <option [ngValue]="null">— Seleccione docente —</option>
+                                        <option *ngFor="let doc of docentes" [ngValue]="doc.id">
+                                            {{ docenteResumen(doc) }}
+                                        </option>
+
+                                    </select>
+                                </label>
+
+                                <label class="field field--small">
+                                    <span class="field__label">Horas</span>
+                                    <input class="input" type="number" min="0" [(ngModel)]="d.horas"
+                                        [ngModelOptions]="{ standalone: true }" />
+                                </label>
+
+                                <button type="button" class="btn btn--ghost btn--sm"
+                                    (click)="removeDocenteFromGrupo(g, di)" *ngIf="g.docentes.length > 1">
+                                    Quitar
+                                </button>
+                            </div>
+
+                            <button type="button" class="btn btn--ghost btn--sm" (click)="addDocenteToGrupo(g)">
+                                + Añadir docente
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn btn--primary btn--sm" (click)="addGrupo()">
+                        + Añadir grupo
+                    </button>
+                </div>
+            </ng-template>
+
+            <footer class="modal__actions">
+                <button type="button" class="btn btn--ghost" (click)="closeCronogramaModal()">
+                    Cancelar
+                </button>
+                <button type="button" class="btn btn--primary" (click)="saveCronograma()">
+                    Guardar cronograma
+                </button>
+            </footer>
+        </div>
+    </div>
+</ng-container>

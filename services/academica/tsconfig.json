@@ -2,13 +2,21 @@
   "compilerOptions": {
     "target": "ES2020",
     "module": "CommonJS",
+    "moduleResolution": "node",
+
     "outDir": "dist",
     "rootDir": "src",
+
     "strict": true,
+    "strictPropertyInitialization": false,
+
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "skipLibCheck": true
+
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "sourceMap": true
   },
   "include": ["src"],
   "exclude": ["node_modules", "**/*.spec.ts"]

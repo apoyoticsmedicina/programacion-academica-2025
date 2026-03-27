@@ -1,4 +1,4 @@
-<nav class="navbar">
+<nav class="navbar" *ngIf="user$ | async as user">
   <div class="navbar__brand">
     <img
       ngSrc="assets/images/Logo+Facultad+de+Medicina-blanco.png"
@@ -9,20 +9,24 @@
     />
   </div>
 
-  <div class="navbar__user">
+  <div class="navbar__user" (click)="goToProfile()" style="cursor: pointer">
     <div class="navbar__avatar">
       <img
-        [src]="
-          user.avatarUrl
-            ? user.avatarUrl
-            : 'https://cdn-icons-png.flaticon.com/512/149/149071.png'
-        "
-        alt="Avatar de {{ user.name }}"
+        [src]="user.foto || defaultAvatar"
+        [alt]="'Avatar de ' + (user.nombre || user.email)"
+        referrerpolicy="no-referrer"
+        crossorigin="anonymous"
+        (error)="onAvatarError($event)"
       />
     </div>
+
     <div class="navbar__info">
-      <div class="navbar__name">{{ user.name }}</div>
-      <div class="navbar__email">{{ user.email }}</div>
+      <div class="navbar__name">
+        {{ user.nombre || "Usuario sin nombre" }}
+      </div>
+      <div class="navbar__email">
+        {{ user.email }}
+      </div>
     </div>
   </div>
 
