@@ -24,6 +24,10 @@
                     </span>
                 </div>
 
+                <div class="sol__alert sol__alert--error" *ngIf="coordBlockedMessage">
+                    {{ coordBlockedMessage }}
+                </div>
+
                 <div *ngIf="loadingCursos" class="sol__loading">Cargando cursos asignados…</div>
                 <div *ngIf="!loadingCursos && !cursosAsignados.length" class="sol__empty">
                     No tienes cursos asignados.
@@ -32,7 +36,7 @@
                 <div *ngIf="cursosAsignados.length" class="sol__form">
                     <label>
                         Curso asignado
-                        <select (change)="onSelectCurso($any($event.target).value)">
+                        <select (change)="onSelectCurso($any($event.target).value)" [disabled]="coordBlocked">
                             <option value="">— Seleccione un curso —</option>
                             <option *ngFor="let c of cursosAsignados" [value]="c.curso.id">
                                 {{ getCursoLabel(c) }}
@@ -49,11 +53,11 @@
 
                     <!-- ====== FORM PROPUESTA (side-by-side) ====== -->
                     <form [formGroup]="form" (ngSubmit)="submitSolicitud()" class="sol__advanced"
-                        *ngIf="selectedProgramaCursoId">
+                        [class.sol__advanced--disabled]="coordBlocked" *ngIf="selectedProgramaCursoId">
                         <label>
                             Motivo (opcional)
                             <input type="text" formControlName="motivo"
-                                placeholder="Describe brevemente el motivo del cambio" />
+                                placeholder="Describe brevemente el motivo del cambio" [disabled]="coordBlocked" />
                         </label>
 
                         <!-- ================== 2-6: TEXTO + METODOLOGÍA (Actual vs Propuesto) ================== -->
@@ -115,7 +119,7 @@
                                 </div>
                             </div>
 
-                            <!-- PROPUESTO (VACÍO) -->
+                            <!-- PROPUESTO -->
                             <div class="sol__compare-col sol__compare-col--proposed">
                                 <div class="sol__compare-title">
                                     <span>Propuesto</span>
@@ -124,26 +128,26 @@
 
                                 <label>
                                     <span class="lbl">2. RELACIONES CON EL PERFIL</span>
-                                    <textarea rows="3" formControlName="perfil"
-                                        placeholder="Propón el cambio…"></textarea>
+                                    <textarea rows="3" formControlName="perfil" placeholder="Propón el cambio…"
+                                        [disabled]="coordBlocked"></textarea>
                                 </label>
 
                                 <label>
                                     <span class="lbl">3. INTENCIONALIDADES FORMATIVAS</span>
                                     <textarea rows="3" formControlName="intencionalidades_formativas"
-                                        placeholder="Propón el cambio…"></textarea>
+                                        placeholder="Propón el cambio…" [disabled]="coordBlocked"></textarea>
                                 </label>
 
                                 <label>
                                     <span class="lbl">4. APORTES DEL CURSO A LA FORMACIÓN</span>
                                     <textarea rows="3" formControlName="aportes_curso_formacion"
-                                        placeholder="Propón el cambio…"></textarea>
+                                        placeholder="Propón el cambio…" [disabled]="coordBlocked"></textarea>
                                 </label>
 
                                 <label>
                                     <span class="lbl">5. DESCRIPCIÓN DE LOS CONOCIMIENTOS</span>
                                     <textarea rows="3" formControlName="descripcion_conocimientos"
-                                        placeholder="Propón el cambio…"></textarea>
+                                        placeholder="Propón el cambio…" [disabled]="coordBlocked"></textarea>
                                 </label>
 
                                 <div class="fieldset">
@@ -152,25 +156,25 @@
                                     <label>
                                         <span class="lbl">Medios y recursos</span>
                                         <textarea rows="2" formControlName="medios_recursos"
-                                            placeholder="Propón el cambio…"></textarea>
+                                            placeholder="Propón el cambio…" [disabled]="coordBlocked"></textarea>
                                     </label>
 
                                     <label>
                                         <span class="lbl">Formas de interacción</span>
                                         <textarea rows="2" formControlName="formas_interaccion"
-                                            placeholder="Propón el cambio…"></textarea>
+                                            placeholder="Propón el cambio…" [disabled]="coordBlocked"></textarea>
                                     </label>
 
                                     <label>
                                         <span class="lbl">Estrategias de internacionalización</span>
                                         <textarea rows="2" formControlName="estrategias_internacionalizacion"
-                                            placeholder="Propón el cambio…"></textarea>
+                                            placeholder="Propón el cambio…" [disabled]="coordBlocked"></textarea>
                                     </label>
 
                                     <label>
                                         <span class="lbl">Estrategias con enfoque diferencial</span>
                                         <textarea rows="2" formControlName="estrategias_enfoque"
-                                            placeholder="Propón el cambio…"></textarea>
+                                            placeholder="Propón el cambio…" [disabled]="coordBlocked"></textarea>
                                     </label>
                                 </div>
                             </div>
@@ -222,17 +226,17 @@
                                             *ngFor="let r of evalRows; let i = index">
                                             <div class="sol__mini-field">
                                                 <input type="text" [value]="r.momentos_evaluacion"
-                                                    placeholder="Momento…"
+                                                    placeholder="Momento…" [disabled]="coordBlocked"
                                                     (input)="onEvalChange(i,'momentos_evaluacion',$any($event.target).value)" />
                                             </div>
 
                                             <div class="sol__mini-field sol__mini-field--pct">
                                                 <input type="number" min="0" max="100" [value]="r.porcentaje"
-                                                    placeholder="%"
+                                                    placeholder="%" [disabled]="coordBlocked"
                                                     (input)="onEvalChange(i,'porcentaje',$any($event.target).value)" />
                                             </div>
 
-                                            <button type="button" class="btn"
+                                            <button type="button" class="btn" [disabled]="coordBlocked"
                                                 (click)="removeEvalRow(i)">Eliminar</button>
                                         </div>
                                     </div>
@@ -243,7 +247,8 @@
                                             100%.</span>
                                     </div>
 
-                                    <button type="button" class="btn" (click)="addEvalRow()">+ Agregar momento</button>
+                                    <button type="button" class="btn" [disabled]="coordBlocked" (click)="addEvalRow()">+
+                                        Agregar momento</button>
                                 </div>
                             </div>
                         </div>
@@ -298,26 +303,29 @@
                                             *ngFor="let b of biblioRows; let bi = index">
                                             <div class="sol__mini-field">
                                                 <input type="text" [value]="b.cultura" placeholder="Cultura…"
+                                                    [disabled]="coordBlocked"
                                                     (input)="onBiblioChange(bi,'cultura',$any($event.target).value)" />
                                             </div>
 
                                             <div class="sol__mini-field">
                                                 <input type="text" [value]="b.referencia" placeholder="Referencia…"
+                                                    [disabled]="coordBlocked"
                                                     (input)="onBiblioChange(bi,'referencia',$any($event.target).value)" />
                                             </div>
 
                                             <div class="sol__mini-field">
                                                 <input type="text" [value]="b.palabras_clave"
-                                                    placeholder="Palabras clave…"
+                                                    placeholder="Palabras clave…" [disabled]="coordBlocked"
                                                     (input)="onBiblioChange(bi,'palabras_clave',$any($event.target).value)" />
                                             </div>
 
-                                            <button type="button" class="btn"
+                                            <button type="button" class="btn" [disabled]="coordBlocked"
                                                 (click)="removeBiblioRow(bi)">Eliminar</button>
                                         </div>
                                     </div>
 
-                                    <button type="button" class="btn" (click)="addBiblioRow()">+ Agregar
+                                    <button type="button" class="btn" [disabled]="coordBlocked"
+                                        (click)="addBiblioRow()">+ Agregar
                                         bibliografía</button>
                                 </div>
                             </div>
@@ -374,7 +382,7 @@
                                         <div class="sol__mini-row sol__mini-row--comunidad"
                                             *ngFor="let row of comunidadRows; let ci = index">
                                             <div class="sol__mini-field">
-                                                <select
+                                                <select [disabled]="coordBlocked"
                                                     (change)="onComunidadDocenteChange(ci, $any($event.target).value)">
                                                     <option value="">— Seleccione docente —</option>
                                                     <option *ngFor="let d of docentes" [value]="d.id"
@@ -386,29 +394,32 @@
 
                                             <div class="sol__mini-field">
                                                 <input type="text" [value]="row.unidad_academica"
-                                                    [readonly]="row.fromBackend" placeholder="Unidad académica…"
+                                                    [readonly]="row.fromBackend" [disabled]="coordBlocked"
+                                                    placeholder="Unidad académica…"
                                                     (input)="!row.fromBackend && onComunidadChange(ci,'unidad_academica',$any($event.target).value)" />
                                             </div>
 
                                             <div class="sol__mini-field sol__mini-field--pct">
                                                 <input type="number" min="0" max="100" [value]="row.porcentaje"
-                                                    placeholder="%"
+                                                    [disabled]="coordBlocked" placeholder="%"
                                                     (input)="onComunidadChange(ci,'porcentaje',$any($event.target).value)" />
                                             </div>
 
-                                            <button type="button" class="btn"
+                                            <button type="button" class="btn" [disabled]="coordBlocked"
                                                 (click)="removeComunidadRow(ci)">Eliminar</button>
                                         </div>
                                     </div>
 
-                                    <button type="button" class="btn" (click)="addComunidadRow()">+ Agregar
+                                    <button type="button" class="btn" [disabled]="coordBlocked"
+                                        (click)="addComunidadRow()">+ Agregar
                                         participante</button>
                                 </div>
                             </div>
                         </div>
 
                         <div class="sol__actions">
-                            <button type="submit" class="btn btn--primary" [disabled]="submitting || !evalSumaValida">
+                            <button type="submit" class="btn btn--primary"
+                                [disabled]="submitting || !evalSumaValida || coordBlocked">
                                 {{ submitting ? 'Enviando…' : 'Enviar solicitud' }}
                             </button>
                         </div>
@@ -457,11 +468,15 @@
         </ng-container>
 
         <!-- ================== ADMIN (solo admin) ================== -->
-        <ng-container *ngIf="showAdminPanel">
+        <ng-container *ngIf="adminShowPendientes">
             <section class="sol__card sol__card--admin">
                 <div class="sol__card-header">
                     <h2 class="sol__card-title">Pendientes (admin)</h2>
                     <span class="sol__badge" *ngIf="pendientesAdmin.length">{{ pendientesAdmin.length }}</span>
+                </div>
+
+                <div class="sol__alert sol__alert--error" *ngIf="adminReadOnlyMessage">
+                    {{ adminReadOnlyMessage }}
                 </div>
 
                 <div *ngIf="loadingPendientes" class="sol__loading">Cargando pendientes…</div>
@@ -487,7 +502,6 @@
                 <!-- ================== ADMIN: DETAIL VIEW ================== -->
                 <div *ngIf="pendientesAdmin.length && adminView === 'detail' && selectedSolicitudAdmin as sel">
                     <div class="sol__detail-full">
-                        <!-- header detalle -->
                         <div class="sol__detail-head">
                             <div>
                                 <h3 class="sol__detail-title">Detalle #{{ sel.id }}</h3>
@@ -505,19 +519,20 @@
                                     Volver
                                 </button>
 
-                                <button type="button" class="btn btn--ghost" (click)="rechazarSeleccionada()"
-                                    [disabled]="submitting">
-                                    {{ adminRejectLabel }}
-                                </button>
+                                <ng-container *ngIf="adminCanApproveReject">
+                                    <button type="button" class="btn btn--ghost" (click)="rechazarSeleccionada()"
+                                        [disabled]="submitting">
+                                        {{ adminRejectLabel }}
+                                    </button>
 
-                                <button type="button" class="btn btn--primary" (click)="aprobarSeleccionada()"
-                                    [disabled]="submitting">
-                                    {{ adminApproveLabel }}
-                                </button>
+                                    <button type="button" class="btn btn--primary" (click)="aprobarSeleccionada()"
+                                        [disabled]="submitting">
+                                        {{ adminApproveLabel }}
+                                    </button>
+                                </ng-container>
                             </div>
                         </div>
 
-                        <!-- ============ BLOQUES FULL WIDTH ============ -->
                         <section class="sol__block">
                             <div class="sol__block-title">Actual</div>
 
@@ -641,10 +656,6 @@
                             </div>
                         </section>
 
-                        <!-- =========================
-             7. EVALUACIÓN (USAR ARRAYS MAPEADOS)
-             ========================= -->
-
                         <section class="sol__block">
                             <div class="sol__block-title">7. Evaluación (Actual)</div>
 
@@ -684,10 +695,6 @@
                                 <div class="sol__empty">—</div>
                             </ng-template>
                         </section>
-
-                        <!-- =========================
-             8. BIBLIOGRAFÍA (USAR ARRAYS MAPEADOS)
-             ========================= -->
 
                         <section class="sol__block">
                             <div class="sol__block-title">8. Bibliografía (Actual)</div>
@@ -733,10 +740,6 @@
                             </ng-template>
                         </section>
 
-                        <!-- =========================
-             9. COMUNIDAD (USAR ARRAYS MAPEADOS)
-             ========================= -->
-
                         <section class="sol__block">
                             <div class="sol__block-title">9. Comunidad Académica (Actual)</div>
 
@@ -781,7 +784,6 @@
                             </ng-template>
                         </section>
 
-                        <!-- Comentario admin -->
                         <label class="sol__admin-comment">
                             Comentario (opcional)
                             <textarea rows="2" formControlName="admin_comentario"></textarea>

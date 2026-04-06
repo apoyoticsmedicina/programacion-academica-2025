@@ -26,6 +26,11 @@ import { ProgramaCursoService } from '../../services/programa-curso.service';
 import { DocenteService } from '../../services/docente.service';
 import { Docente } from '../../dto/docentes.dto';
 
+import {
+  EstadoServidorService,
+  EstadoServidorDTO,
+} from '../../services/estado-servidor.service';
+
 function unwrapList<T>(res: any): T[] {
   return Array.isArray(res)
     ? res
@@ -93,6 +98,9 @@ export class SolicitudesCambioComponent implements OnInit {
   error: string | null = null;
   success: string | null = null;
 
+  effectiveEstado: EstadoServidorDTO | null = null;
+  loadingEstadoServidor = false;
+
   // ====== Admin selección / modo ======
   selectedSolicitudAdmin: SolicitudCambioDTO | null = null;
   adminView: 'list' | 'detail' = 'list';
@@ -119,6 +127,7 @@ export class SolicitudesCambioComponent implements OnInit {
     private pecSvc: PlanEstudioCursoService,
     private pcSvc: ProgramaCursoService,
     private docenteSvc: DocenteService,
+    private estadoServidorSrv: EstadoServidorService,
     private cdr: ChangeDetectorRef
   ) {
     this.form = this.fb.group({
@@ -365,6 +374,7 @@ export class SolicitudesCambioComponent implements OnInit {
 
     if (this.showAdminPanel || this.showCoordPanel) {
       this.loadDocentes();
+      this.loadEstadoServidor();
     }
 
     if (this.showCoordPanel) {
@@ -615,6 +625,30 @@ export class SolicitudesCambioComponent implements OnInit {
     });
   }
 
+  private normalizeEstado(value: string | null | undefined): string {
+    return (value ?? '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim()
+      .toLowerCase();
+  }
+
+  private loadEstadoServidor(): void {
+    this.loadingEstadoServidor = true;
+    this.estadoServidorSrv
+      .effective()
+      .pipe(finalize(() => (this.loadingEstadoServidor = false)))
+      .subscribe({
+        next: (row) => {
+          this.effectiveEstado = row ?? null;
+        },
+        error: (e) => {
+          console.error(e);
+          this.effectiveEstado = null;
+        },
+      });
+  }
+
   // ====== Evaluación (propuesta) ======
   addEvalRow(): void {
     this.evalRows.push({ momentos_evaluacion: '', porcentaje: 0 });
@@ -637,6 +671,62 @@ export class SolicitudesCambioComponent implements OnInit {
     const filas = (this.evalRows || []).filter((r) => (r.momentos_evaluacion ?? '').trim().length > 0);
     if (!filas.length) return true;
     return this.evalTotalPorcentaje === 100;
+  }
+
+  get estadoServidorActual(): string {
+    return this.normalizeEstado(this.effectiveEstado?.estado);
+  }
+
+  get isSolicitudesEstado(): boolean {
+    return this.estadoServidorActual === 'solicitudes de cambio';
+  }
+
+  get isRevisionesEstado(): boolean {
+    return this.estadoServidorActual === 'revisiones';
+  }
+
+  get isAprobacionEstado(): boolean {
+    return this.estadoServidorActual === 'aprobacion';
+  }
+
+  get coordCanEdit(): boolean {
+    return this.showCoordPanel && this.isSolicitudesEstado;
+  }
+
+  get coordBlocked(): boolean {
+    return this.showCoordPanel && !this.isSolicitudesEstado;
+  }
+
+  get coordBlockedMessage(): string | null {
+    if (!this.showCoordPanel) return null;
+    if (this.isSolicitudesEstado) return null;
+
+    const estado = this.effectiveEstado?.estado ?? 'desconocido';
+    return `La captura de solicitudes está deshabilitada. El estado actual del servidor es “${estado}”.`;
+  }
+
+  get adminCanReviewWithoutDecision(): boolean {
+    return this.showAdminPanel && this.isRevisionesEstado;
+  }
+
+  get adminCanApproveReject(): boolean {
+    return this.showAdminPanel && this.isAprobacionEstado;
+  }
+
+  get adminShowPendientes(): boolean {
+    return this.showAdminPanel && (this.isRevisionesEstado || this.isAprobacionEstado);
+  }
+
+  get adminReadOnlyMessage(): string | null {
+    if (!this.showAdminPanel) return null;
+    if (this.isRevisionesEstado) {
+      return 'Las solicitudes están en revisión. En este estado solo se pueden consultar, sin aprobar ni rechazar.';
+    }
+    if (this.isAprobacionEstado) {
+      return null;
+    }
+    const estado = this.effectiveEstado?.estado ?? 'desconocido';
+    return `Las solicitudes administrativas no están disponibles en este momento. El estado actual es “${estado}”.`;
   }
 
   // ====== Bibliografía (propuesta) ======
@@ -712,6 +802,12 @@ export class SolicitudesCambioComponent implements OnInit {
   submitSolicitud(): void {
     this.error = null;
     this.success = null;
+
+    if (!this.coordCanEdit) {
+      this.error =
+        'No se pueden enviar solicitudes de cambio fuera del estado “solicitudes de cambio”.';
+      return;
+    }
 
     if (!this.selectedProgramaCursoId) {
       this.error = 'Selecciona un curso con programa asociado.';
@@ -820,6 +916,12 @@ export class SolicitudesCambioComponent implements OnInit {
     if (!this.selectedSolicitudAdmin) return;
     const comentario = this.normText(this.form.value.admin_comentario);
 
+    if (!this.adminCanApproveReject) {
+      this.error =
+        'Las solicitudes solo se pueden aprobar o rechazar cuando el estado del servidor es “aprobación”.';
+      return;
+    }
+
     this.submitting = true;
     this.solicitudes
       .aprobar(this.selectedSolicitudAdmin.id, { comentario })
@@ -840,6 +942,12 @@ export class SolicitudesCambioComponent implements OnInit {
   rechazarSeleccionada(): void {
     if (!this.selectedSolicitudAdmin) return;
     const comentario = this.normText(this.form.value.admin_comentario);
+
+    if (!this.adminCanApproveReject) {
+      this.error =
+        'Las solicitudes solo se pueden aprobar o rechazar cuando el estado del servidor es “aprobación”.';
+      return;
+    }
 
     this.submitting = true;
     this.solicitudes

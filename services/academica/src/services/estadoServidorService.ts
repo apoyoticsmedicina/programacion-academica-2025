@@ -4,6 +4,7 @@ import { EstadoServidor } from "../entities/EstadoServidor";
 const ESTADOS = {
     IDLE: "idle (lectura)",
     SOLICITUDES: "solicitudes de cambio",
+    APROBACION: "aprobación",
     REVISIONES: "revisiones",
     CRONOGRAMAS: "cronogramas",
 } as const;
@@ -16,6 +17,7 @@ type TimeWindow = {
 
 type ActivateFlow1Payload = {
     solicitudes: TimeWindow;
+    aprobacion: TimeWindow;
     revisiones: TimeWindow;
     cronogramas: TimeWindow;
 };
@@ -39,11 +41,24 @@ function assertWindow(w: TimeWindow, label: string) {
     return { desde, hasta };
 }
 
-function assertContiguous(aEnd: Date, bStart: Date, label: string) {
-    // Requisito: fin estado A == inicio estado B
-    if (aEnd.getTime() !== bStart.getTime()) {
-        throw new Error(`Las franjas no son concurrentes (${label}): fin != inicio`);
+function assertOrderedWindowsWithoutOverlap(
+    windows: Array<{ estado: string; desde: Date; hasta: Date }>
+) {
+    const ordered = [...windows].sort((a, b) => a.desde.getTime() - b.desde.getTime());
+
+    for (let i = 1; i < ordered.length; i++) {
+        const prev = ordered[i - 1];
+        const next = ordered[i];
+
+        if (next.desde.getTime() < prev.hasta.getTime()) {
+            throw new Error(
+                `Las franjas se solapan (${prev.estado} -> ${next.estado}): ` +
+                `el inicio de '${next.estado}' debe ser mayor o igual al fin de '${prev.estado}'.`
+            );
+        }
     }
+
+    return ordered;
 }
 
 export class EstadoServidorService {
@@ -87,13 +102,15 @@ export class EstadoServidorService {
 
     /**
      * Estado "efectivo" según NOW() y ventanas.
-     * - Si NOW() cae dentro de una ventana de (solicitudes/revisiones/cronogramas), ese es el estado efectivo.
+     * - Si NOW() cae dentro de una ventana de
+     *   (solicitudes/aprobación/revisiones/cronogramas), ese es el estado efectivo.
      * - Si no cae en ninguna, es IDLE.
      */
     private async computeEffectiveEstado(now: Date, managerRepo = this.repo): Promise<string> {
         const rows = await managerRepo.find({
             where: [
                 { estado: ESTADOS.SOLICITUDES },
+                { estado: ESTADOS.APROBACION },
                 { estado: ESTADOS.REVISIONES },
                 { estado: ESTADOS.CRONOGRAMAS },
             ] as any,
@@ -109,12 +126,31 @@ export class EstadoServidorService {
         return ESTADOS.IDLE;
     }
 
-    // ✅ Devuelve SOLO el nombre del estado efectivo (según NOW())
+    private async hasFlow1ConfiguredFromNow(
+        repo: any,
+        now: Date
+    ): Promise<boolean> {
+        const rows = await repo.find({
+            where: [
+                { estado: ESTADOS.SOLICITUDES },
+                { estado: ESTADOS.REVISIONES },
+                { estado: ESTADOS.APROBACION },
+                { estado: ESTADOS.CRONOGRAMAS },
+            ] as any,
+        });
+
+        const t = now.getTime();
+
+        return rows.some((r: EstadoServidor) => {
+            if (!r.activo_desde || !r.activo_hasta) return false;
+            return r.activo_hasta.getTime() > t;
+        });
+    }
+
     async getEffectiveEstadoNow(): Promise<string> {
         return this.computeEffectiveEstado(new Date(), this.repo);
     }
 
-    // ✅ Devuelve la FILA completa del estado efectivo (más útil para el front)
     async getEffectiveRowNow(): Promise<EstadoServidor | null> {
         const estado = await this.computeEffectiveEstado(new Date(), this.repo);
         return this.repo.findOne({ where: { estado } });
@@ -157,26 +193,39 @@ export class EstadoServidorService {
     async activateFlow1(payload: ActivateFlow1Payload) {
         const s = assertWindow(payload.solicitudes, ESTADOS.SOLICITUDES);
         const r = assertWindow(payload.revisiones, ESTADOS.REVISIONES);
+        const a = assertWindow(payload.aprobacion, ESTADOS.APROBACION);
         const c = assertWindow(payload.cronogramas, ESTADOS.CRONOGRAMAS);
 
-        // Contigüidad estricta
-        assertContiguous(s.hasta, r.desde, `${ESTADOS.SOLICITUDES} -> ${ESTADOS.REVISIONES}`);
-        assertContiguous(r.hasta, c.desde, `${ESTADOS.REVISIONES} -> ${ESTADOS.CRONOGRAMAS}`);
+        assertOrderedWindowsWithoutOverlap([
+            { estado: ESTADOS.SOLICITUDES, desde: s.desde, hasta: s.hasta },
+            { estado: ESTADOS.REVISIONES, desde: r.desde, hasta: r.hasta },
+            { estado: ESTADOS.APROBACION, desde: a.desde, hasta: a.hasta },
+            { estado: ESTADOS.CRONOGRAMAS, desde: c.desde, hasta: c.hasta },
+        ]);
 
         return AppDataSource.transaction(async (manager) => {
             const repo = manager.getRepository(EstadoServidor);
 
+            const now = new Date();
+            const hasConfigured = await this.hasFlow1ConfiguredFromNow(repo, now);
+
+            if (hasConfigured) {
+                throw new Error(
+                    'No se puede reescribir el flujo 1 porque ya existe una programación activa o futura.'
+                );
+            }
+
             await this.setWindow(ESTADOS.SOLICITUDES, s.desde, s.hasta, repo);
             await this.setWindow(ESTADOS.REVISIONES, r.desde, r.hasta, repo);
+            await this.setWindow(ESTADOS.APROBACION, a.desde, a.hasta, repo);
             await this.setWindow(ESTADOS.CRONOGRAMAS, c.desde, c.hasta, repo);
 
-            const now = new Date();
             const targetEstado = await this.computeEffectiveEstado(now, repo);
 
             await repo.createQueryBuilder()
                 .update(EstadoServidor)
                 .set({ activo: false })
-                .where("activo = true")
+                .where('activo = true')
                 .execute();
 
             const target = await repo.findOne({ where: { estado: targetEstado } });
@@ -198,7 +247,7 @@ export class EstadoServidorService {
             const solicitudes = await repo.findOne({ where: { estado: ESTADOS.SOLICITUDES } });
             if (!solicitudes || !solicitudes.activo_desde || !solicitudes.activo_hasta) {
                 throw new Error(
-                    "No se puede abrir solo cronogramas: el flujo completo (solicitudes→revisiones→cronogramas) debe haber ocurrido al menos una vez."
+                    "No se puede abrir solo cronogramas: el flujo completo (solicitudes→revisiones→aprobación→cronogramas) debe haber ocurrido al menos una vez."
                 );
             }
 

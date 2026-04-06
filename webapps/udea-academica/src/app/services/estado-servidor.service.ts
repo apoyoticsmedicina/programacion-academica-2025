@@ -18,6 +18,7 @@ export type TimeWindowDTO = { desde: string; hasta: string };
 export type ActivarFlujoFullDTO = {
     solicitudes: TimeWindowDTO;
     revisiones: TimeWindowDTO;
+    aprobacion: TimeWindowDTO;
     cronogramas: TimeWindowDTO;
 };
 

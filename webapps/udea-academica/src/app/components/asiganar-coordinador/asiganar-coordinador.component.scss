@@ -1,7 +1,10 @@
 .asignar {
-  padding: 1.5rem;
-  max-width: 1000px;
-  margin: 0 auto;
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  margin: 0;
+  padding: 1.5rem 1.5rem 2rem;
+  box-sizing: border-box;
 
   &__header {
     margin-bottom: 1.5rem;

@@ -27,7 +27,6 @@
             </div>
         </div>
 
-        <!-- Estado activo / efectivo -->
         <section class="estado__grid">
             <article class="estado__card">
                 <div class="estado__card-label">Activo (persistido)</div>
@@ -45,56 +44,48 @@
         <main class="estado__main">
             <!-- Flujo 1 -->
             <section class="estado__card">
-                <h2 class="estado__card-title">Flujo 1: solicitudes → revisiones → cronogramas</h2>
+                <h2 class="estado__card-title">Flujo 1: solicitudes → revisiones → aprobación → cronogramas</h2>
 
                 <form [formGroup]="flow1Form" (ngSubmit)="submitFlow1()" class="estado__form">
                     <div class="estado__form-grid">
                         <label>
                             Solicitudes desde
                             <input type="datetime-local" formControlName="sDesde" />
-                            <span class="estado__error-text" *ngIf="hasError(flow1Form, 'sDesde', 'required')">
-                                Requerido.
-                            </span>
                         </label>
 
                         <label>
                             Solicitudes hasta
                             <input type="datetime-local" formControlName="sHasta" />
-                            <span class="estado__error-text" *ngIf="hasError(flow1Form, 'sHasta', 'required')">
-                                Requerido.
-                            </span>
                         </label>
 
                         <label>
                             Revisiones desde
                             <input type="datetime-local" formControlName="rDesde" />
-                            <span class="estado__error-text" *ngIf="hasError(flow1Form, 'rDesde', 'required')">
-                                Requerido.
-                            </span>
                         </label>
 
                         <label>
                             Revisiones hasta
                             <input type="datetime-local" formControlName="rHasta" />
-                            <span class="estado__error-text" *ngIf="hasError(flow1Form, 'rHasta', 'required')">
-                                Requerido.
-                            </span>
+                        </label>
+
+                        <label>
+                            Aprobación desde
+                            <input type="datetime-local" formControlName="aDesde" />
+                        </label>
+
+                        <label>
+                            Aprobación hasta
+                            <input type="datetime-local" formControlName="aHasta" />
                         </label>
 
                         <label>
                             Cronogramas desde
                             <input type="datetime-local" formControlName="cDesde" />
-                            <span class="estado__error-text" *ngIf="hasError(flow1Form, 'cDesde', 'required')">
-                                Requerido.
-                            </span>
                         </label>
 
                         <label>
                             Cronogramas hasta
                             <input type="datetime-local" formControlName="cHasta" />
-                            <span class="estado__error-text" *ngIf="hasError(flow1Form, 'cHasta', 'required')">
-                                Requerido.
-                            </span>
                         </label>
                     </div>
 

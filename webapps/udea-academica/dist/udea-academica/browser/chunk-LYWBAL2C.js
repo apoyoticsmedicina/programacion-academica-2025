@@ -1,1 +1,0 @@
-import{$a as o,Ja as n,ab as i,pb as p}from"./chunk-LWW4RSRK.js";var r=class t{static \u0275fac=function(e){return new(e||t)};static \u0275cmp=n({type:t,selectors:[["app-perfil"]],decls:2,vars:0,template:function(e,s){e&1&&(o(0,"p"),p(1,"perfil works!"),i())},encapsulation:2})};export{r as PerfilComponent};

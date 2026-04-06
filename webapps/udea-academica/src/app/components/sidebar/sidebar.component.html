@@ -10,31 +10,38 @@
             <span class="label">Programas</span>
           </a>
         </li>
+
         <li routerLinkActive="active">
           <a routerLink="cursos">
             <span class="icon">📚</span>
             <span class="label">Cursos</span>
           </a>
         </li>
-        <li routerLinkActive="active">
+
+        <li *ngIf="showCronogramas" routerLinkActive="active">
           <a routerLink="cronogramas">
             <span class="icon">📅</span>
             <span class="label">Cronogramas</span>
           </a>
         </li>
-        <li *hasRole="[ROLES.SUPERADMIN, ROLES.ADMIN]" routerLinkActive="active">
-          <a routerLink="asignar-coordinadores">
-            <span class="icon">📋</span>
-            <span class="label">Asignar Coordinadores</span>
-          </a>
-        </li>
-        <li *hasRole="[ROLES.SUPERADMIN, ROLES.ADMIN, ROLES.COORD_PROGRAMA, ROLES.COORD_CURSO]"
-          routerLinkActive="active">
-          <a routerLink="solicitudes-cambio">
-            <span class="icon">📝</span>
-            <span class="label">Solicitudes de cambio</span>
-          </a>
-        </li>
+
+        <ng-container *hasRole="[ROLES.SUPERADMIN, ROLES.ADMIN]">
+          <li *ngIf="showAsignarCoordinadores" routerLinkActive="active">
+            <a routerLink="asignar-coordinadores">
+              <span class="icon">📋</span>
+              <span class="label">Asignar Coordinadores</span>
+            </a>
+          </li>
+        </ng-container>
+
+        <ng-container *hasRole="[ROLES.SUPERADMIN, ROLES.ADMIN, ROLES.COORD_PROGRAMA, ROLES.COORD_CURSO]">
+          <li *ngIf="showSolicitudesCambio" routerLinkActive="active">
+            <a routerLink="solicitudes-cambio">
+              <span class="icon">📝</span>
+              <span class="label">Solicitudes de cambio</span>
+            </a>
+          </li>
+        </ng-container>
       </ul>
     </div>
 

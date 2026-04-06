@@ -1,12 +1,11 @@
 /* src/app/components/solicitudes-cambio/solicitudes-cambio.component.scss */
 .sol {
-  padding: 1.5rem;
   width: 100%;
-  max-width: 1400px;
-  height: 100%;
-  overflow: auto;
-  padding-bottom: 2rem;
-  margin: 0 auto;
+  max-width: none;
+  min-width: 0;
+  margin: 0;
+  padding: 1.5rem 1.5rem 2rem;
+  box-sizing: border-box;
 
   /* =========================
      Header / mensajes

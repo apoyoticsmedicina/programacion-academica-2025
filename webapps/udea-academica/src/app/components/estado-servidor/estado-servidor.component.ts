@@ -52,6 +52,8 @@ export class EstadoServidorComponent implements OnInit {
     this.flow1Form = this.fb.group({
       sDesde: ['', Validators.required],
       sHasta: ['', Validators.required],
+      aDesde: ['', Validators.required],
+      aHasta: ['', Validators.required],
       rDesde: ['', Validators.required],
       rHasta: ['', Validators.required],
       cDesde: ['', Validators.required],
@@ -86,7 +88,6 @@ export class EstadoServidorComponent implements OnInit {
     this.estadoSrv.list().subscribe({
       next: (list) => {
         this.estados = list ?? [];
-        // luego cargamos active/effective
         this.estadoSrv.active().subscribe({
           next: (a) => {
             this.active = a;
@@ -147,6 +148,7 @@ export class EstadoServidorComponent implements OnInit {
     const payload: ActivarFlujoFullDTO = {
       solicitudes: { desde: this.toIso(v.sDesde), hasta: this.toIso(v.sHasta) },
       revisiones: { desde: this.toIso(v.rDesde), hasta: this.toIso(v.rHasta) },
+      aprobacion: { desde: this.toIso(v.aDesde), hasta: this.toIso(v.aHasta) },
       cronogramas: { desde: this.toIso(v.cDesde), hasta: this.toIso(v.cHasta) },
     };
 
@@ -208,7 +210,6 @@ export class EstadoServidorComponent implements OnInit {
   }
 
   private toIso(localDatetime: string): string {
-    // datetime-local => Date (en zona local del navegador) => ISO UTC
     const d = new Date(localDatetime);
     if (Number.isNaN(d.getTime())) throw new Error('Fecha inválida.');
     return d.toISOString();

@@ -146,8 +146,8 @@ router.put('/cronogramas/curso/:cursoId', COORD, cronCtrl.replaceForCurso);
 router.get('/cronogramas/excel', ANY, cronExcelCtrl.export);
 
 // ================== ESTADOS SERVIDOR (admin) ==================
-router.get('/estados-servidor/active', ADMIN, estadoSrvCtrl.getActive);
-router.get('/estados-servidor/effective', ADMIN, estadoSrvCtrl.effective);
+router.get('/estados-servidor/active', ANY, estadoSrvCtrl.getActive);
+router.get('/estados-servidor/effective', ANY, estadoSrvCtrl.effective);
 router.post('/estados-servidor/recalc', ADMIN, estadoSrvCtrl.recalc);
 router.post('/estados-servidor/flows/full', ADMIN, estadoSrvCtrl.activateFlow1);
 router.post('/estados-servidor/flows/cronogramas-only', ADMIN, estadoSrvCtrl.activateCronogramasOnly);

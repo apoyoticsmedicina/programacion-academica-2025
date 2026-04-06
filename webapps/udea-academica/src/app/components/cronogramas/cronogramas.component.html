@@ -111,10 +111,12 @@
                                     {{ tipoLabel(p) }}
                                 </td>
                                 <td>
-                                    <button *hasRole="[ROLES.SUPERADMIN, ROLES.ADMIN]" type="button"
-                                        class="btn btn--ghost" (click)="openCronogramaConfig(p, plan, c)">
-                                        Configurar cronograma
-                                    </button>
+                                    <ng-container *hasRole="[ROLES.SUPERADMIN, ROLES.ADMIN]">
+                                        <button *ngIf="canConfigurarCronograma" type="button" class="btn btn--ghost"
+                                            (click)="openCronogramaConfig(p, plan, c)">
+                                            Configurar cronograma
+                                        </button>
+                                    </ng-container>
                                 </td>
                             </tr>
                         </tbody>
@@ -127,7 +129,7 @@
 
 <!-- ============ MODAL CRONOGRAMA ============ -->
 <ng-container *hasRole="[ROLES.SUPERADMIN, ROLES.ADMIN]">
-    <div class="modal-backdrop" *ngIf="cronModalOpen" role="dialog" aria-modal="true">
+    <div class="modal-backdrop" *ngIf="cronModalOpen && canConfigurarCronograma" role="dialog" aria-modal="true">
         <div class="modal">
             <header class="modal__header">
                 <h3 class="modal__title">

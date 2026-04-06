@@ -28,6 +28,11 @@ import { HasRoleDirective } from '../../directives/has-role.directive';
 import { ROLES } from '../../auth/roles.const';
 import { AuthService } from '../../services/auth.service';
 
+import {
+  EstadoServidorService,
+  EstadoServidorDTO,
+} from '../../services/estado-servidor.service';
+
 
 function unwrapList<T>(res: any): T[] {
   return Array.isArray(res)
@@ -94,6 +99,9 @@ export class CronogramasComponent implements OnInit {
   // copia de trabajo de los grupos (se confirma al guardar)
   editGrupos: GrupoCronograma[] = [];
 
+  effectiveEstado: EstadoServidorDTO | null = null;
+  loadingEstadoServidor = false;
+
   ROLES = ROLES;
 
   constructor(
@@ -104,10 +112,12 @@ export class CronogramasComponent implements OnInit {
     private progCursoSvc: ProgramaCursoService,
     private docenteSvc: DocenteService,
     private cronSvc: CronogramasService,
-    private auth: AuthService
+    private auth: AuthService,
+    private estadoServidorSrv: EstadoServidorService
   ) { }
 
   ngOnInit(): void {
+    this.loadEstadoServidor();
     this.loadProgramas();
     this.loadDocentes();
   }
@@ -118,6 +128,42 @@ export class CronogramasComponent implements OnInit {
   private canManageCronogramas(): boolean {
     const rol = this.auth.getCurrentUser()?.rol;
     return rol === ROLES.SUPERADMIN || rol === ROLES.ADMIN;
+  }
+
+  private normalizeEstado(value: string | null | undefined): string {
+    return (value ?? '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim()
+      .toLowerCase();
+  }
+
+  private loadEstadoServidor(): void {
+    this.loadingEstadoServidor = true;
+    this.estadoServidorSrv
+      .effective()
+      .pipe(finalize(() => (this.loadingEstadoServidor = false)))
+      .subscribe({
+        next: (row) => {
+          this.effectiveEstado = row ?? null;
+        },
+        error: (err) => {
+          console.error('Error cargando estado efectivo del servidor', err);
+          this.effectiveEstado = null;
+        },
+      });
+  }
+
+  get estadoServidorActual(): string {
+    return this.normalizeEstado(this.effectiveEstado?.estado);
+  }
+
+  get isCronogramasEstado(): boolean {
+    return this.estadoServidorActual === 'cronogramas';
+  }
+
+  get canConfigurarCronograma(): boolean {
+    return this.canManageCronogramas() && this.isCronogramasEstado;
   }
 
   private loadProgramas(): void {
@@ -371,7 +417,7 @@ export class CronogramasComponent implements OnInit {
     plan: PlanCronograma,
     cursoRow: CursoCronogramaUI
   ) {
-    if (!this.canManageCronogramas()) return;
+    if (!this.canConfigurarCronograma) return;
     this.selectedPrograma = programa;
     this.selectedPlan = plan;
     this.selectedCurso = cursoRow;
@@ -401,23 +447,23 @@ export class CronogramasComponent implements OnInit {
   }
 
   addGrupo(): void {
-    if (!this.canManageCronogramas()) return;
+    if (!this.canConfigurarCronograma) return;
     const nextIndex = this.editGrupos.length + 1;
     this.editGrupos.push(this.createGrupoBase(nextIndex));
   }
 
   removeGrupo(i: number): void {
-    if (!this.canManageCronogramas()) return;
+    if (!this.canConfigurarCronograma) return;
     this.editGrupos.splice(i, 1);
   }
 
   addDocenteToGrupo(g: GrupoCronograma): void {
-    if (!this.canManageCronogramas()) return;
+    if (!this.canConfigurarCronograma) return;
     g.docentes.push({ docenteId: null, horas: null });
   }
 
   removeDocenteFromGrupo(g: GrupoCronograma, index: number): void {
-    if (!this.canManageCronogramas()) return;
+    if (!this.canConfigurarCronograma) return;
     if (g.docentes.length <= 1) return; // dejamos al menos uno visible
     g.docentes.splice(index, 1);
   }
@@ -431,7 +477,7 @@ export class CronogramasComponent implements OnInit {
   }
 
   saveCronograma(): void {
-    if (!this.canManageCronogramas()) return;
+    if (!this.canConfigurarCronograma) return;
     if (!this.selectedCurso) return;
 
     // Normalizamos: solo docentes con id y horas > 0
