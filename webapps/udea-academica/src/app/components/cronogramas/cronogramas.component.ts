@@ -10,7 +10,10 @@ import { ProgramaAcademico } from '../../dto/programas.dto';
 import { PlanEstudio } from '../../dto/plan-estudio.dto';
 import { PlanEstudioCursoDTO } from '../../dto/plan-estudio-curso.dto';
 import { Curso } from '../../dto/cursos.dto';
-import { ProgramaCursoDTO, ProgramaHoraDTO } from '../../dto/programa-curso.dto';
+import {
+  ProgramaCursoDTO,
+  ProgramaHoraDTO,
+} from '../../dto/programa-curso.dto';
 
 import { ProgramaService } from '../../services/programa.service';
 import { PlanEstudioService } from '../../services/plan-estudio.service';
@@ -33,16 +36,15 @@ import {
   EstadoServidorDTO,
 } from '../../services/estado-servidor.service';
 
-
 function unwrapList<T>(res: any): T[] {
   return Array.isArray(res)
     ? res
-    : (res?.items ??
-      res?.data ??
-      res?.results ??
-      res?.rows ??
-      res?.list ??
-      []) as T[];
+    : ((res?.items ??
+        res?.data ??
+        res?.results ??
+        res?.rows ??
+        res?.list ??
+        []) as T[]);
 }
 
 // ==== Tipos para cronograma / grupos (UI) ====
@@ -113,8 +115,8 @@ export class CronogramasComponent implements OnInit {
     private docenteSvc: DocenteService,
     private cronSvc: CronogramasService,
     private auth: AuthService,
-    private estadoServidorSrv: EstadoServidorService
-  ) { }
+    private estadoServidorSrv: EstadoServidorService,
+  ) {}
 
   ngOnInit(): void {
     this.loadEstadoServidor();
@@ -175,7 +177,7 @@ export class CronogramasComponent implements OnInit {
       .pipe(
         finalize(() => {
           this.loading = false;
-        })
+        }),
       )
       .subscribe({
         next: (res: any) => {
@@ -202,7 +204,7 @@ export class CronogramasComponent implements OnInit {
         catchError((e) => {
           console.error('Error cargando docentes', e);
           return of([]);
-        })
+        }),
       )
       .subscribe((res: any) => {
         this.docentes = unwrapList<Docente>(res) ?? [];
@@ -224,7 +226,6 @@ export class CronogramasComponent implements OnInit {
     this.loadDocentes(); // opcional, pero barato
   }
 
-
   // =====================================================
   // Expandir programa -> cargar planes y cursos con programa de curso
   // =====================================================
@@ -243,7 +244,7 @@ export class CronogramasComponent implements OnInit {
             plan.activo &&
             ((plan as any).programaId === p.id ||
               (plan as any).programa_id === p.id ||
-              (plan as any).programa?.id === p.id)
+              (plan as any).programa?.id === p.id),
         );
 
         p.planes = activos.map((plan) => ({
@@ -267,16 +268,13 @@ export class CronogramasComponent implements OnInit {
           unwrapList<PlanEstudioCursoDTO>(resPec) ?? [];
 
         const ordenadas = [...(pecs || [])].sort(
-          (a, b) => (a.orden ?? 0) - (b.orden ?? 0)
+          (a, b) => (a.orden ?? 0) - (b.orden ?? 0),
         );
 
         const soloEstePlan = ordenadas.filter((assoc) => {
           const anyAssoc = assoc as any;
           const planId =
-            anyAssoc.planId ??
-            anyAssoc.plan_id ??
-            anyAssoc.plan?.id ??
-            null;
+            anyAssoc.planId ?? anyAssoc.plan_id ?? anyAssoc.plan?.id ?? null;
 
           if (planId == null) return true; // si no trae FK explícita, no filtramos
           return planId === plan.id;
@@ -290,10 +288,7 @@ export class CronogramasComponent implements OnInit {
         const calls = soloEstePlan.map((assoc) => {
           const anyAssoc = assoc as any;
           const cursoId =
-            anyAssoc.cursoId ??
-            anyAssoc.curso_id ??
-            anyAssoc.curso?.id ??
-            null;
+            anyAssoc.cursoId ?? anyAssoc.curso_id ?? anyAssoc.curso?.id ?? null;
 
           if (!cursoId) {
             console.warn('PEC sin cursoId válido', assoc);
@@ -306,12 +301,12 @@ export class CronogramasComponent implements OnInit {
 
           const programas$ = this.progCursoSvc.getByPEC(anyAssoc.id).pipe(
             map((resp: any) => unwrapList<ProgramaCursoDTO>(resp) ?? []),
-            catchError(() => of([] as ProgramaCursoDTO[]))
+            catchError(() => of([] as ProgramaCursoDTO[])),
           );
 
-          const cronogramas$ = this.cronSvc.getByCurso(cursoId).pipe(
-            catchError(() => of([] as CronogramaGrupoDTO[]))
-          );
+          const cronogramas$ = this.cronSvc
+            .getByCurso(cursoId)
+            .pipe(catchError(() => of([] as CronogramaGrupoDTO[])));
 
           return forkJoin({
             assoc: of(assoc),
@@ -365,7 +360,7 @@ export class CronogramasComponent implements OnInit {
           error: (err) => {
             console.error(
               'Error resolviendo cursos con programa de curso / cronogramas',
-              err
+              err,
             );
             plan.cursos = [];
           },
@@ -401,10 +396,7 @@ export class CronogramasComponent implements OnInit {
       hAATP: (h as any).hSemanalesAATP ?? h.h_semanales_a_a_t_p ?? 0,
       hTotal: (h as any).hTotalesCurso ?? h.h_totales_curso ?? 0,
       creditos:
-        (h as any).creditosCurso ??
-        h.creditos_curso ??
-        pc.creditos ??
-        null,
+        (h as any).creditosCurso ?? h.creditos_curso ?? pc.creditos ?? null,
     };
   }
 
@@ -415,7 +407,7 @@ export class CronogramasComponent implements OnInit {
   openCronogramaConfig(
     programa: ProgramaCronograma,
     plan: PlanCronograma,
-    cursoRow: CursoCronogramaUI
+    cursoRow: CursoCronogramaUI,
   ) {
     if (!this.canConfigurarCronograma) return;
     this.selectedPrograma = programa;
@@ -489,7 +481,7 @@ export class CronogramasComponent implements OnInit {
             d.docenteId != null &&
             d.docenteId > 0 &&
             d.horas != null &&
-            d.horas > 0
+            d.horas > 0,
         ),
       }))
       .filter((g) => g.docentes.length > 0);
@@ -556,7 +548,6 @@ export class CronogramasComponent implements OnInit {
     return labels.join('<br>');
   }
 
-
   /** Texto para mostrar al docente: nombre – vinculación – #documento */
   docenteResumen(doc: Docente | null | undefined): string {
     if (!doc) return '';
@@ -566,14 +557,9 @@ export class CronogramasComponent implements OnInit {
     const nombre = `${doc.nombres ?? ''} ${doc.apellidos ?? ''}`.trim();
 
     const vincRaw =
-      anyDoc.vinculacion ??
-      anyDoc.tipo_vinculacion ??
-      anyDoc.vinculo ??
-      '';
+      anyDoc.vinculacion ?? anyDoc.tipo_vinculacion ?? anyDoc.vinculo ?? '';
     const vinc =
-      vincRaw && String(vincRaw).trim().length
-        ? String(vincRaw).trim()
-        : '';
+      vincRaw && String(vincRaw).trim().length ? String(vincRaw).trim() : '';
 
     const docNum =
       anyDoc.documento ??
@@ -591,7 +577,6 @@ export class CronogramasComponent implements OnInit {
   }
 
   downloadExcel(): void {
-    if (!this.canManageCronogramas()) return;
     this.cronSvc.downloadExcel().subscribe({
       next: (blob) => {
         const url = window.URL.createObjectURL(blob);
@@ -609,6 +594,4 @@ export class CronogramasComponent implements OnInit {
       },
     });
   }
-
-
 }
