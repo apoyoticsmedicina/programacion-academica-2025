@@ -1,18 +1,23 @@
 .planes {
   position: relative;
-  padding: 3rem 1rem 1rem;
+  padding: 3rem 1.5rem 1.5rem;
   padding-bottom: 4rem;
+  color: var(--color-text);
 
   &__header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     margin-bottom: 1rem;
+    gap: 1rem;
   }
 
   &__title {
-    font-size: 1.25rem;
-    font-weight: bold;
+    margin: 0;
+    font-size: 1.35rem;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    color: var(--color-primary-900);
   }
 
   &__add-btn {
@@ -20,14 +25,28 @@
     top: 1rem;
     right: 1rem;
     z-index: 10;
-    background-color: #00802b;
-    color: #fff;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
+    background: var(--color-primary-900);
+    color: var(--color-text-inverse);
+    border: 1px solid var(--color-primary-900);
+    padding: 0.6rem 1rem;
+    border-radius: var(--radius-md);
     cursor: pointer;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    &:hover { background-color: #006622; }
+    font-weight: 700;
+    box-shadow: var(--shadow-md);
+    transition:
+      background-color var(--transition-base),
+      border-color var(--transition-base),
+      box-shadow var(--transition-base);
+
+    &:hover {
+      background: #01552d;
+      border-color: #01552d;
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--focus-ring);
+    }
   }
 
   &__list {
@@ -39,97 +58,164 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0.75rem 1rem;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      margin-bottom: 0.5rem;
+      gap: 1rem;
+      padding: 0.85rem 1rem;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      margin-bottom: 0.65rem;
+      background: var(--color-surface);
+      box-shadow: var(--shadow-sm);
+      transition:
+        border-color var(--transition-base),
+        box-shadow var(--transition-base),
+        background-color var(--transition-base);
+
+      &:hover {
+        border-color: rgba(2, 105, 55, 0.24);
+        background: #fcfffc;
+      }
 
       .planes__info {
         display: flex;
         align-items: baseline;
         gap: 1rem;
+        min-width: 0;
+        flex-wrap: wrap;
       }
 
       .planes__inactive {
-        color: #800000;
+        color: #991b1b;
         font-style: italic;
+        font-size: 0.88rem;
       }
 
       .planes__edit {
         background: transparent;
         border: none;
-        font-size: 0.9rem;
+        font-size: 0.92rem;
+        font-weight: 700;
         cursor: pointer;
-        color: #00802b;
+        color: var(--color-primary-900);
+        padding: 0.35rem 0.45rem;
+        border-radius: var(--radius-sm);
+        transition:
+          background-color var(--transition-base),
+          color var(--transition-base);
+
+        &:hover {
+          background: rgba(2, 105, 55, 0.08);
+        }
+
+        &:focus-visible {
+          outline: none;
+          box-shadow: var(--focus-ring);
+        }
       }
     }
 
     .planes__empty {
       font-style: italic;
-      color: #999;
+      color: var(--color-text-muted);
       padding: 1rem;
       text-align: center;
+      border: 1px dashed var(--color-border-strong);
+      border-radius: var(--radius-lg);
+      background: var(--color-surface-muted);
     }
   }
 
   &__backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(15, 23, 42, 0.36);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 20;
+    padding: 1rem;
   }
 
   &__modal {
-    background: #fff;
-    padding: 1.25rem 1.5rem;
-    border-radius: 6px;
+    background: var(--color-surface);
+    padding: 1.35rem 1.5rem;
+    border-radius: var(--radius-lg);
     width: 420px;
     max-width: 92%;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: 1px solid var(--color-border);
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.18);
 
     h3 {
-      margin: 0 0 0.75rem 0;
-      font-size: 1.1rem;
+      margin: 0 0 0.85rem;
+      font-size: 1.12rem;
+      font-family: var(--font-heading);
+      font-weight: 700;
+      color: var(--color-primary-900);
     }
 
     form {
       display: flex;
       flex-direction: column;
-      gap: 0.75rem;
+      gap: 0.85rem;
 
       label {
         display: flex;
         flex-direction: column;
         font-size: 0.9rem;
+        color: var(--color-text);
+        font-weight: 600;
 
         select,
         input {
-          margin-top: 0.3rem;
-          height: 36px;
-          padding: 0 0.6rem;
-          border: 1px solid #ccc;
-          border-radius: 6px;
+          margin-top: 0.35rem;
+          height: 38px;
+          padding: 0 0.7rem;
+          border: 1px solid var(--color-border-strong);
+          border-radius: var(--radius-md);
           font-size: 0.95rem;
-          background: #fff;
+          background: var(--color-surface);
+          color: var(--color-text);
+          transition:
+            border-color var(--transition-base),
+            box-shadow var(--transition-base);
+        }
+
+        select:focus,
+        input:focus {
+          outline: none;
+          border-color: var(--color-primary-700);
+          box-shadow: var(--focus-ring);
         }
 
         .inline {
           display: flex;
           align-items: center;
-          gap: .5rem;
+          gap: 0.5rem;
 
-          select { flex: 1; }
+          select {
+            flex: 1;
+          }
 
           .link {
             background: transparent;
             border: none;
-            color: #00802b;
+            color: var(--color-primary-900);
             cursor: pointer;
-            padding: 0 .25rem;
-            height: 36px;
+            padding: 0 0.35rem;
+            height: 38px;
+            font-weight: 700;
+            border-radius: var(--radius-sm);
+            transition:
+              background-color var(--transition-base),
+              color var(--transition-base);
+
+            &:hover {
+              background: rgba(2, 105, 55, 0.08);
+            }
+
+            &:focus-visible {
+              outline: none;
+              box-shadow: var(--focus-ring);
+            }
           }
         }
       }
@@ -138,22 +224,37 @@
     /* Tabs */
     .tabs {
       display: flex;
-      gap: .25rem;
-      margin: .25rem 0 1rem;
+      gap: 0.35rem;
+      margin: 0.35rem 0 1rem;
 
       button {
         flex: 1;
-        padding: .4rem .6rem;
-        border: 1px solid #ddd;
-        background: #f7f7f7;
-        border-radius: 6px;
+        padding: 0.5rem 0.7rem;
+        border: 1px solid var(--color-border);
+        background: var(--color-surface-muted);
+        color: var(--color-text-soft);
+        border-radius: var(--radius-md);
         cursor: pointer;
-        font-weight: 600;
+        font-weight: 700;
+        transition:
+          background-color var(--transition-base),
+          border-color var(--transition-base),
+          color var(--transition-base);
+
+        &:hover {
+          border-color: rgba(2, 105, 55, 0.22);
+          color: var(--color-primary-900);
+        }
 
         &.active {
-          background: #eaffea;
-          border-color: #00802b;
-          color: #006622;
+          background: rgba(2, 105, 55, 0.08);
+          border-color: rgba(2, 105, 55, 0.22);
+          color: var(--color-primary-900);
+        }
+
+        &:focus-visible {
+          outline: none;
+          box-shadow: var(--focus-ring);
         }
       }
     }
@@ -163,24 +264,45 @@
     display: flex;
     justify-content: flex-end;
     gap: 0.5rem;
-    margin-top: 0.25rem;
+    margin-top: 0.35rem;
 
     button {
-      padding: 0.45rem 0.9rem;
-      border: none;
-      border-radius: 6px;
+      padding: 0.55rem 0.95rem;
+      border-radius: var(--radius-md);
       cursor: pointer;
-      font-weight: 600;
+      font-weight: 700;
+      border: 1px solid var(--color-border);
+      background: var(--color-surface-muted);
+      color: var(--color-text);
+      transition:
+        background-color var(--transition-base),
+        border-color var(--transition-base),
+        color var(--transition-base);
+
+      &:hover {
+        border-color: var(--color-primary-700);
+      }
+
+      &:focus-visible {
+        outline: none;
+        box-shadow: var(--focus-ring);
+      }
     }
 
-    button[type='button'] {
-      background: #e5e5e5;
-      color: #111;
+    button[type="button"] {
+      background: var(--color-surface-muted);
+      color: var(--color-text);
     }
 
-    button[type='submit'] {
-      background: #00802b;
-      color: #fff;
+    button[type="submit"] {
+      background: var(--color-primary-900);
+      color: var(--color-text-inverse);
+      border-color: var(--color-primary-900);
+
+      &:hover {
+        background: #01552d;
+        border-color: #01552d;
+      }
 
       &:disabled {
         opacity: 0.6;
@@ -194,5 +316,5 @@
 .cohorte-form {
   display: flex;
   flex-direction: column;
-  gap: .75rem;
+  gap: 0.85rem;
 }

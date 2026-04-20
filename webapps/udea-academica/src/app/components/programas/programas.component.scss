@@ -1,9 +1,12 @@
 .programas {
   position: relative;
-  padding: 1rem 1rem 4rem; // padding-bottom: 4rem;
+  padding: 1.5rem 1.5rem 4rem;
   height: 100%;
+  color: var(--color-text);
 
-  // ===== Lista principal =====
+  /* =========================
+     Lista principal
+     ========================= */
   &__list {
     list-style: none;
     margin: 2.75rem 0 0;
@@ -13,129 +16,176 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0.75rem 1rem;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      margin-bottom: 0.5rem;
-      background: #fff;
+      gap: 1rem;
+      padding: 0.85rem 1rem;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      margin-bottom: 0.65rem;
+      background: var(--color-surface);
+      box-shadow: var(--shadow-sm);
+      transition:
+        border-color var(--transition-base),
+        box-shadow var(--transition-base),
+        background-color var(--transition-base);
+
+      &:hover {
+        border-color: rgba(2, 105, 55, 0.24);
+        background: #fcfffc;
+      }
 
       .programas__type {
-        color: #666;
+        color: var(--color-text-muted);
         margin-left: 0.5rem;
-        font-size: 0.9rem;
+        font-size: 0.88rem;
       }
 
       .programas__expand-btn {
-        background: none;
-        border: none;
+        background: transparent;
+        border: 1px solid var(--color-border);
+        color: var(--color-primary-900);
+        width: 34px;
+        height: 34px;
+        border-radius: var(--radius-md);
         font-size: 1rem;
         cursor: pointer;
+        transition:
+          background-color var(--transition-base),
+          border-color var(--transition-base),
+          color var(--transition-base);
+
+        &:hover {
+          background: rgba(2, 105, 55, 0.08);
+          border-color: rgba(2, 105, 55, 0.22);
+        }
       }
     }
 
     > .programas__plans {
-      margin: 0 0 0.75rem 2rem;
+      margin: 0 0 1rem 1.5rem;
       padding: 0;
 
       .plan {
-        margin-bottom: 0.75rem;
+        margin-bottom: 0.9rem;
 
         &__header {
-          font-weight: 600;
-          margin: 0.25rem 0 0.5rem;
+          font-weight: 700;
+          margin: 0.35rem 0 0.55rem;
           display: flex;
           align-items: center;
           gap: 0.5rem;
+          color: var(--color-primary-900);
+          font-family: var(--font-heading);
         }
       }
 
       .programas__no-plans {
         font-style: italic;
-        color: #999;
+        color: var(--color-text-muted);
       }
 
-      // ---- AGRUPACIÓN POR NIVEL ----
+      /* =========================
+         Agrupación por nivel
+         ========================= */
       .nivel-header {
-        margin: 0.75rem 0 0.35rem 1.5rem;
+        margin: 0.9rem 0 0.4rem 1.25rem;
         display: flex;
         align-items: center;
         gap: 0.5rem;
       }
 
       .badge--lvl {
-        background: #eef2ff;
-        color: #3730a3;
-        border-color: #c7d2fe;
+        background: rgba(2, 105, 55, 0.08);
+        color: var(--color-primary-900);
+        border-color: rgba(2, 105, 55, 0.18);
       }
 
       .nivel-total {
-        margin: 0.35rem 0 0.75rem 1.5rem;
-        padding: 0.45rem 0.75rem;
-        border: 1px dashed #e5e7eb;
-        border-radius: 6px;
-        background: #fafafa;
+        margin: 0.35rem 0 0.85rem 1.25rem;
+        padding: 0.5rem 0.8rem;
+        border: 1px dashed var(--color-border-strong);
+        border-radius: var(--radius-md);
+        background: var(--color-surface-muted);
         display: flex;
         justify-content: flex-end;
         gap: 0.5rem;
-        color: #111827;
+        color: var(--color-text);
 
         strong {
           font-weight: 800;
+          color: var(--color-primary-900);
         }
       }
 
       .programas__courses {
         list-style: none;
-        margin: 0.25rem 0 0.5rem 1.5rem;
+        margin: 0.25rem 0 0.5rem 1.25rem;
         padding: 0;
 
         .programas__course {
           display: flex;
           flex-direction: column;
-          gap: 0.4rem;
-          margin-bottom: 0.5rem;
-          padding: 0.5rem 0.75rem;
-          border: 1px solid #e5e7eb;
-          border-radius: 6px;
-          background: #fff;
+          gap: 0.45rem;
+          margin-bottom: 0.6rem;
+          padding: 0.65rem 0.8rem;
+          border: 1px solid var(--color-border);
+          border-radius: var(--radius-lg);
+          background: var(--color-surface);
+          box-shadow: var(--shadow-sm);
 
-          // Fila compacta
           > :first-child {
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            min-width: 0;
           }
 
           .course__caret {
-            background: none;
-            border: 1px solid #ddd;
-            width: 26px;
-            height: 26px;
-            line-height: 24px;
-            border-radius: 6px;
+            background: var(--color-surface-muted);
+            border: 1px solid var(--color-border);
+            color: var(--color-primary-900);
+            width: 28px;
+            height: 28px;
+            line-height: 26px;
+            border-radius: var(--radius-md);
             cursor: pointer;
+            transition:
+              background-color var(--transition-base),
+              border-color var(--transition-base);
+
+            &:hover {
+              background: rgba(2, 105, 55, 0.08);
+              border-color: rgba(2, 105, 55, 0.22);
+            }
           }
 
           .course__order {
-            font-weight: 700;
+            font-weight: 800;
+            color: var(--color-primary-900);
           }
+
           .course__code {
             font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            color: var(--color-text-soft);
           }
+
           .course__name {
-            font-weight: 500;
+            font-weight: 600;
+            color: var(--color-text);
           }
+
           .course__meta {
             margin-left: auto;
-            font-size: 0.9rem;
-            color: #555;
+            font-size: 0.88rem;
+            color: var(--color-text-muted);
+            white-space: nowrap;
           }
 
           .course__badge {
             margin-left: 0.5rem;
-            padding: 0.15rem 0.45rem;
+            padding: 0.16rem 0.48rem;
             border-radius: 999px;
             font-size: 0.75rem;
+            font-weight: 700;
             border: 1px solid transparent;
 
             &.electiva {
@@ -143,102 +193,114 @@
               color: #8a4500;
               border-color: #f4d7a3;
             }
+
             &.obligatorio {
-              background: #e0f7e9;
-              color: #00802b;
-              border-color: #a6e0bf;
+              background: #ecfdf3;
+              color: var(--color-success);
+              border-color: #86efac;
             }
+
             &.disabled {
               background: #f3f4f6;
-              color: #6b7280;
-              border-color: #e5e7eb;
+              color: var(--color-text-muted);
+              border-color: var(--color-border);
             }
           }
 
-          // Panel de detalles
+          /* =========================
+             Panel de detalles
+             ========================= */
           .course__details {
-            border-top: 1px dashed #e5e7eb;
-            padding-top: 0.5rem;
+            border-top: 1px dashed var(--color-border);
+            padding-top: 0.65rem;
 
             .skeleton {
               .sk-line {
                 height: 10px;
-                background: #e5e7eb;
+                background: var(--color-border);
                 border-radius: 4px;
                 margin: 6px 0;
               }
+
               .w-75 {
                 width: 75%;
               }
+
               .w-50 {
                 width: 50%;
               }
             }
 
             .error {
-              background: #fde8e8;
-              color: #b91c1c;
+              background: #fef2f2;
+              color: #991b1b;
               border: 1px solid #fecaca;
-              padding: 0.5rem 0.6rem;
-              border-radius: 6px;
+              padding: 0.55rem 0.65rem;
+              border-radius: var(--radius-md);
             }
 
             .details__grid {
               display: grid;
               grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-              gap: 0.75rem;
+              gap: 0.8rem;
               margin-top: 0.25rem;
             }
 
             .details__block {
-              background: #fafafa;
-              border: 1px solid #eee;
-              border-radius: 6px;
-              padding: 0.6rem 0.7rem;
+              background: var(--color-surface-muted);
+              border: 1px solid var(--color-border);
+              border-radius: var(--radius-lg);
+              padding: 0.7rem 0.8rem;
 
               h4 {
                 margin: 0 0 0.5rem;
                 font-size: 0.95rem;
+                font-family: var(--font-heading);
+                font-weight: 700;
+                color: var(--color-primary-900);
               }
 
               .list {
                 margin: 0;
                 padding-left: 1rem;
+                color: var(--color-text-soft);
               }
 
               .chips {
                 list-style: none;
                 display: flex;
                 flex-wrap: wrap;
-                gap: 0.4rem;
+                gap: 0.45rem;
                 margin: 0;
                 padding: 0;
 
                 .chip {
-                  border: 1px solid #e5e7eb;
-                  background: #fff;
+                  border: 1px solid var(--color-border);
+                  background: var(--color-surface);
                   border-radius: 999px;
-                  padding: 0.2rem 0.55rem;
-                  font-size: 0.85rem;
+                  padding: 0.22rem 0.58rem;
+                  font-size: 0.84rem;
+                  color: var(--color-text);
 
                   .chip__meta {
-                    color: #6b7280;
+                    color: var(--color-text-muted);
                   }
                 }
               }
 
               .detail-field {
-                margin-bottom: 0.5rem;
+                margin-bottom: 0.55rem;
 
                 .label {
-                  font-weight: 600;
-                  font-size: 0.9rem;
+                  font-weight: 700;
+                  font-size: 0.88rem;
                   margin-bottom: 0.2rem;
+                  color: var(--color-primary-900);
                 }
               }
 
               .muted {
-                color: #6b7280;
+                color: var(--color-text-muted);
                 font-style: italic;
               }
             }
@@ -248,13 +310,19 @@
     }
   }
 
-  // Badge genérica
+  /* =========================
+     Badge genérica
+     ========================= */
   .badge {
-    display: inline-block;
-    padding: 0 0.35rem;
-    border-radius: 4px;
-    border: 1px solid #e5e7eb;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.08rem 0.4rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border);
     font-size: 0.8rem;
+    font-weight: 600;
+    background: var(--color-surface);
+    color: var(--color-text-soft);
 
     &--ok {
       background: #eef6ee;
@@ -262,67 +330,99 @@
       border-color: #cfe9cf;
     }
 
-    // badge por nivel
     &--lvl {
-      padding: 0.15rem 0.55rem;
+      padding: 0.18rem 0.58rem;
       border-radius: 999px;
-      font-weight: 600;
-      background: rgba(0, 0, 0, 0.06);
+      font-weight: 700;
+      background: rgba(2, 105, 55, 0.08);
+      color: var(--color-primary-900);
     }
   }
 
-  // Botón agregar
+  /* =========================
+     Botón agregar
+     ========================= */
   &__add-btn {
     position: absolute;
     top: 1rem;
     right: 1rem;
     z-index: 10;
-    background-color: #00802b;
-    color: #fff;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
+    background: var(--color-primary-900);
+    color: var(--color-text-inverse);
+    border: 1px solid var(--color-primary-900);
+    padding: 0.6rem 1rem;
+    border-radius: var(--radius-md);
     cursor: pointer;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+    font-weight: 700;
+    box-shadow: var(--shadow-md);
+    transition:
+      background-color var(--transition-base),
+      border-color var(--transition-base),
+      transform var(--transition-base);
 
     &:hover {
-      background-color: #006622;
+      background: #01552d;
+      border-color: #01552d;
     }
   }
 
-  // Modal
+  /* =========================
+     Modal
+     ========================= */
   .modal-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.4);
+    background: rgba(15, 23, 42, 0.36);
     display: flex;
     align-items: center;
     justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
   }
 
   .modal {
-    background: #fff;
-    padding: 2rem;
-    border-radius: 8px;
-    width: 320px;
+    background: var(--color-surface);
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    width: min(100%, 380px);
+    border: 1px solid var(--color-border);
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.18);
 
     h2 {
-      margin-top: 0;
+      margin: 0 0 1rem;
+      font-family: var(--font-heading);
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--color-primary-900);
     }
 
     label {
       display: block;
       margin-bottom: 1rem;
       font-size: 0.9rem;
+      color: var(--color-text);
 
       input,
       select {
         width: 100%;
-        padding: 0.5rem;
-        margin-top: 0.25rem;
+        padding: 0.6rem 0.7rem;
+        margin-top: 0.3rem;
         box-sizing: border-box;
-        border: 1px solid #ccc;
-        border-radius: 6px;
+        border: 1px solid var(--color-border-strong);
+        border-radius: var(--radius-md);
+        background: var(--color-surface);
+        color: var(--color-text);
+        font: inherit;
+        transition:
+          border-color var(--transition-base),
+          box-shadow var(--transition-base);
+      }
+
+      input:focus,
+      select:focus {
+        outline: none;
+        border-color: var(--color-primary-700);
+        box-shadow: var(--focus-ring);
       }
     }
 
@@ -332,17 +432,37 @@
       gap: 0.5rem;
 
       button {
-        padding: 0.4rem 0.8rem;
-        border: none;
-        border-radius: 6px;
+        padding: 0.55rem 0.9rem;
+        border-radius: var(--radius-md);
         cursor: pointer;
+        font: inherit;
+        font-weight: 700;
+        border: 1px solid var(--color-border);
+        background: var(--color-surface-muted);
+        color: var(--color-text);
+        transition:
+          background-color var(--transition-base),
+          border-color var(--transition-base),
+          color var(--transition-base);
       }
+
+      button:hover {
+        border-color: var(--color-primary-700);
+      }
+
       button[type="button"] {
-        background: #ccc;
+        background: var(--color-surface-muted);
       }
+
       button[type="submit"] {
-        background: #00802b;
-        color: #fff;
+        background: var(--color-primary-900);
+        color: var(--color-text-inverse);
+        border-color: var(--color-primary-900);
+      }
+
+      button[type="submit"]:hover {
+        background: #01552d;
+        border-color: #01552d;
       }
     }
   }

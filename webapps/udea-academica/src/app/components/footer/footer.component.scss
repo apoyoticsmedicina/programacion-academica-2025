@@ -3,52 +3,74 @@
   bottom: 0;
   right: 1rem;
   z-index: 1000;
-  background-color: #000000;
-  color: #fff;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 8px 8px 0 0;
+  background: var(--color-primary-900);
+  color: var(--color-text-inverse);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: none;
+  padding: 0.55rem 1rem;
+  border-radius: 12px 12px 0 0;
   font-size: 0.875rem;
+  font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 -2px 6px rgba(0,0,0,0.2);
+  box-shadow: 0 -4px 12px rgba(15, 23, 42, 0.16);
+  transition:
+    background-color var(--transition-base),
+    box-shadow var(--transition-base);
+
+  &:hover {
+    background: #01552d;
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow:
+      0 -4px 12px rgba(15, 23, 42, 0.16),
+      0 0 0 3px rgba(255, 255, 255, 0.16);
+  }
 }
 
 .footer {
-  background-color: #00802b;
-  color: #fff;
-  padding: 2rem 0 1rem;    /* top 2rem, bottom 1rem */
-  font-family: sans-serif;
+  background: var(--color-primary-900);
+  color: var(--color-text-inverse);
+  padding: 2rem 0 1rem;
+  font-family: var(--font-body);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 
-  /* grid de 3 columnas ocupando todo el ancho */
   &__container {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 2rem;
     width: 100%;
-    padding: 0 2rem;       /* gutter lateral */
+    padding: 0 2rem;
     box-sizing: border-box;
+
+    @media (max-width: 900px) {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
   }
 
   /* ---------------------------------------------------
-     Sección 1: Programación Académica — alineación izquierda
+     Sección 1: Programación Académica
      --------------------------------------------------- */
   &__container > .footer__section:nth-child(1) {
     text-align: left;
 
     .footer__title {
-      margin: 0 0 0.75rem;  /* debajo del título */
+      margin: 0 0 0.75rem;
     }
 
     .footer__text {
-      margin: 0;            /* ya no centrar, todo a la izquierda */
-      max-width: none;
-      font-size: 0.9rem;
-      line-height: 1.4;
+      margin: 0;
+      max-width: 34rem;
+      font-size: 0.92rem;
+      line-height: 1.55;
+      color: rgba(255, 255, 255, 0.84);
     }
   }
 
   /* ---------------------------------------------------
-     Sección 2: Contáctanos — todo centrado
+     Sección 2: Contáctanos
      --------------------------------------------------- */
   &__container > .footer__section:nth-child(2) {
     text-align: center;
@@ -61,7 +83,7 @@
   }
 
   /* ---------------------------------------------------
-     Sección 3: Redes Sociales — alineación derecha
+     Sección 3: Redes Sociales
      --------------------------------------------------- */
   &__container > .footer__section:nth-child(3) {
     text-align: right;
@@ -72,15 +94,38 @@
     }
   }
 
-  /* títulos */
-  &__title {
-    font-size: 1rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    margin-bottom: 0.75rem;
+  @media (max-width: 900px) {
+    &__container > .footer__section:nth-child(1),
+    &__container > .footer__section:nth-child(2),
+    &__container > .footer__section:nth-child(3) {
+      text-align: left;
+    }
+
+    &__container > .footer__section:nth-child(2) .footer__list {
+      display: block;
+      margin: 0;
+      text-align: left;
+    }
+
+    &__container > .footer__section:nth-child(3) .footer__socials {
+      justify-content: flex-start;
+    }
   }
 
-  /* lista de contacto */
+  &__title {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+    color: #ffffff;
+  }
+
+  &__text {
+    color: rgba(255, 255, 255, 0.84);
+  }
+
   &__list {
     list-style: none;
     padding: 0;
@@ -88,42 +133,55 @@
 
     .footer__item {
       display: flex;
-      align-items: center;
-      font-size: 0.9rem;
-      line-height: 1.4;
-      margin-bottom: 0.5rem;
+      align-items: flex-start;
+      font-size: 0.92rem;
+      line-height: 1.5;
+      margin-bottom: 0.55rem;
+      color: rgba(255, 255, 255, 0.84);
 
       .footer__icon {
         width: 1.2rem;
-        margin-right: 0.5rem;
+        margin-right: 0.55rem;
         text-align: center;
+        color: #ffffff;
+        flex-shrink: 0;
       }
     }
   }
 
-  /* redes sociales */
   &__socials {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.55rem;
     margin-top: 0.5rem;
-    justify-content: center; /* fallback, luego override en sección 3 */
+    justify-content: center;
   }
 
   &__social-link {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 2rem;
-    height: 2rem;
-    background-color: #fff;
-    color: #00802b;
-    border-radius: 4px;
+    width: 2.15rem;
+    height: 2.15rem;
+    background: #ffffff;
+    color: var(--color-primary-900);
+    border-radius: var(--radius-md);
     text-decoration: none;
-    transition: background-color 0.2s, color 0.2s;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    transition:
+      background-color var(--transition-base),
+      color var(--transition-base),
+      transform var(--transition-base),
+      box-shadow var(--transition-base);
 
     &:hover {
-      background-color: #e6e6e6;
-      color: #00480b;
+      background: rgba(255, 255, 255, 0.92);
+      color: #01552d;
+      transform: translateY(-1px);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18);
     }
 
     svg {
@@ -132,14 +190,13 @@
     }
   }
 
-  /* pie de página: reducir espacio inferior */
   &__bottom {
     text-align: center;
-    font-size: 0.8rem;
-    opacity: 0.85;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
-    padding: 1rem 2rem;     /* top 1rem, bottom 1rem, gutter lateral */
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.78);
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+    padding: 1rem 2rem;
     box-sizing: border-box;
-    margin-top: 1rem;
+    margin-top: 1.25rem;
   }
 }

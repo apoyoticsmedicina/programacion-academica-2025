@@ -1,22 +1,77 @@
 /* ===========================================
-   0. Importar fuentes Nunito / Nunito Sans
+   0. Importar tipografías alineadas con marca
+   - Roboto: texto UI
+   - Roboto Slab: títulos secundarios / acentos
+   - Times New Roman queda como serif institucional del sistema
    =========================================== */
-@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Nunito+Sans:wght@300;400;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Slab:wght@400;700&display=swap");
 
 /* ===========================================
-   1. Variables globales de fuente
+   1. Tokens globales de identidad visual UdeA
+   Basados en el manual institucional
    =========================================== */
 :root {
+  /* Tipografías */
   --font-body:
-    "Nunito Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "Roboto", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
-  --font-heading:
-    "Nunito", "Nunito Sans", system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", sans-serif;
+  --font-heading: "Roboto Slab", "Times New Roman", Georgia, serif;
+  --font-institutional: "Times New Roman", Georgia, serif;
+
+  /* Paleta principal institucional */
+  --color-primary-900: #026937;
+  --color-primary-700: #35944b;
+  --color-primary-500: #43b649;
+  --color-primary-300: #8dc63f;
+
+  /* Soporte institucional */
+  --color-teal-500: #3ebdac;
+  --color-teal-700: #069a7e;
+  --color-teal-900: #0e7774;
+
+  /* Paleta complementaria */
+  --color-accent-purple: #70205b;
+  --color-accent-blue: #137598;
+  --color-accent-red: #ef434d;
+  --color-accent-orange: #f9a12c;
+
+  /* Neutros para interfaz */
+  --color-bg: #f5f7f5;
+  --color-surface: #ffffff;
+  --color-surface-muted: #eef3ef;
+  --color-border: #d8e2da;
+  --color-border-strong: #b7c9ba;
+
+  --color-text: #1f2937;
+  --color-text-soft: #4b5563;
+  --color-text-muted: #6b7280;
+  --color-text-inverse: #ffffff;
+
+  /* Estados */
+  --color-success: #026937;
+  --color-warning: #f9a12c;
+  --color-danger: #c43d4a;
+  --color-info: #137598;
+
+  /* Interacción */
+  --link-color: var(--color-primary-900);
+  --link-hover: #014f29;
+
+  --focus-ring: 0 0 0 3px rgba(2, 105, 55, 0.18);
+
+  /* Layout */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
+  --shadow-md: 0 4px 12px rgba(16, 24, 40, 0.08);
+
+  --transition-base: 160ms ease;
 }
 
 /* ===========================================
-   2. Reset básico
+   2. Reset base
    =========================================== */
 *,
 *::before,
@@ -24,82 +79,376 @@
   box-sizing: border-box;
 }
 
-/* 3. Eliminar cualquier scroll a nivel de la ventana
-      (lo que ya tenías) y aplicar la fuente global      */
+html {
+  font-size: 14px;
+  -webkit-text-size-adjust: 100%;
+  text-rendering: optimizeLegibility;
+}
+
 html,
 body {
   margin: 0;
   padding: 0;
   width: 100%;
   height: 100%;
-  overflow: hidden;
-
-  font-family: var(--font-body);
-  font-size: 14px;
-  line-height: 1.4;
-  color: #111827;
-  background-color: #f3f4f6;
 }
 
-/* 4. Asegurar que el root y el <main> de app.html
-      ocupen el 100% y no hagan scroll (lo que tenías) */
+body {
+  overflow: hidden;
+  font-family: var(--font-body);
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--color-text);
+  background-color: var(--color-bg);
+}
+
+/* ===========================================
+   3. Root de Angular
+   =========================================== */
 app-root {
   display: flex;
   flex-direction: column;
   height: 100%;
-  overflow: hidden; /* ok, root sin scroll */
+  overflow: hidden;
 }
 
 app-root main {
   display: flex;
   flex-direction: column;
   height: 100%;
-  overflow: auto; /* ✅ aquí sí permitimos scroll */
+  overflow: auto;
+  background: var(--color-bg);
 }
 
 /* ===========================================
-   5. Tipografía por defecto de textos y títulos
+   4. Tipografía global
    =========================================== */
-
-/* Títulos: usan Nunito (más redondita) */
 h1,
 h2,
 h3,
 h4,
 h5,
 h6 {
+  margin: 0;
+  color: var(--color-primary-900);
   font-family: var(--font-heading);
   font-weight: 700;
+  line-height: 1.2;
   letter-spacing: 0.01em;
-  margin: 0;
 }
 
-/* Párrafos y textos generales */
-p {
-  margin-top: 0;
-  margin-bottom: 0.5rem;
+h1 {
+  font-size: 2rem;
+}
+h2 {
+  font-size: 1.625rem;
+}
+h3 {
+  font-size: 1.375rem;
+}
+h4 {
+  font-size: 1.125rem;
+}
+h5 {
+  font-size: 1rem;
+}
+h6 {
+  font-size: 0.875rem;
 }
 
-/* Inputs, selects, botones, labels, etc. con la misma fuente de cuerpo */
-button,
+p,
+span,
+small,
+label,
+li,
+td,
+th,
 input,
 select,
 textarea,
-label {
+button {
   font-family: var(--font-body);
 }
 
-/* Botones en general un poquito más marcados */
-button,
-.btn {
-  font-weight: 600;
+p {
+  margin: 0 0 0.75rem;
+  color: var(--color-text-soft);
 }
 
-/* Enlaces básicos */
-a {
-  color: #0d7a33;
-  text-decoration: none;
+small {
+  color: var(--color-text-muted);
 }
+
+/* Texto institucional puntual */
+.institutional-text {
+  font-family: var(--font-institutional);
+}
+
+/* ===========================================
+   5. Enlaces
+   =========================================== */
+a {
+  color: var(--link-color);
+  text-decoration: none;
+  transition:
+    color var(--transition-base),
+    text-decoration-color var(--transition-base);
+}
+
 a:hover {
+  color: var(--link-hover);
   text-decoration: underline;
+}
+
+/* ===========================================
+   6. Formularios
+   =========================================== */
+input,
+select,
+textarea {
+  width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.95rem;
+  line-height: 1.4;
+  padding: 0.65rem 0.85rem;
+  outline: none;
+  transition:
+    border-color var(--transition-base),
+    box-shadow var(--transition-base),
+    background-color var(--transition-base);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-text-muted);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--color-primary-700);
+  box-shadow: var(--focus-ring);
+}
+
+label {
+  display: inline-block;
+  margin-bottom: 0.35rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* ===========================================
+   7. Botones
+   =========================================== */
+button,
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 38px;
+  padding: 0.65rem 1rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background-color var(--transition-base),
+    border-color var(--transition-base),
+    color var(--transition-base),
+    box-shadow var(--transition-base),
+    transform var(--transition-base);
+}
+
+button:focus-visible,
+.btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+button:disabled,
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Primario institucional */
+.btn-primary,
+button.btn-primary {
+  background: var(--color-primary-900);
+  color: var(--color-text-inverse);
+}
+
+.btn-primary:hover,
+button.btn-primary:hover {
+  background: #01552d;
+}
+
+/* Secundario sobrio */
+.btn-secondary,
+button.btn-secondary {
+  background: var(--color-surface);
+  border-color: var(--color-border-strong);
+  color: var(--color-primary-900);
+}
+
+.btn-secondary:hover,
+button.btn-secondary:hover {
+  background: var(--color-surface-muted);
+  border-color: var(--color-primary-700);
+}
+
+/* Peligro */
+.btn-danger,
+button.btn-danger {
+  background: var(--color-danger);
+  color: var(--color-text-inverse);
+}
+
+.btn-danger:hover,
+button.btn-danger:hover {
+  filter: brightness(0.95);
+}
+
+/* Ghost */
+.btn-ghost,
+button.btn-ghost {
+  background: transparent;
+  color: var(--color-primary-900);
+}
+
+.btn-ghost:hover,
+button.btn-ghost:hover {
+  background: rgba(2, 105, 55, 0.08);
+}
+
+/* ===========================================
+   8. Tablas
+   =========================================== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--color-surface);
+}
+
+thead th {
+  background: var(--color-surface-muted);
+  color: var(--color-primary-900);
+  font-size: 0.86rem;
+  font-weight: 700;
+  text-align: left;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+tbody td {
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text);
+  vertical-align: middle;
+}
+
+tbody tr:hover {
+  background: #f8fbf8;
+}
+
+/* ===========================================
+   9. Cards / superficies
+   =========================================== */
+.card,
+.surface {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.card-header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.card-body {
+  padding: 1.25rem;
+}
+
+.card-title {
+  margin: 0;
+  color: var(--color-primary-900);
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+/* ===========================================
+   10. Utilidades base
+   =========================================== */
+.text-muted {
+  color: var(--color-text-muted);
+}
+
+.text-soft {
+  color: var(--color-text-soft);
+}
+
+.text-primary {
+  color: var(--color-primary-900);
+}
+
+.bg-primary {
+  background: var(--color-primary-900);
+  color: var(--color-text-inverse);
+}
+
+.border-primary {
+  border-color: var(--color-primary-900);
+}
+
+.section-title {
+  color: var(--color-primary-900);
+  font-family: var(--font-heading);
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.page-shell {
+  min-height: 100%;
+  padding: 1.25rem;
+  background: var(--color-bg);
+}
+
+/* ===========================================
+   11. Scrollbar sutil
+   =========================================== */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-strong) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ===========================================
+   12. Selección de texto
+   =========================================== */
+::selection {
+  background: rgba(2, 105, 55, 0.16);
+  color: var(--color-text);
 }

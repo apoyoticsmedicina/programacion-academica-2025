@@ -4,7 +4,7 @@ import type { Environment } from './environment.model';
 
 export const environment: Environment = {
   production: false,
-  name: 'local',
+  name: 'prod',
 
   apiBaseUrl: 'http://localhost:3000',
   backendUrl: 'http://localhost:3000',

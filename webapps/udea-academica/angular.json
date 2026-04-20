@@ -107,7 +107,7 @@
               "buildTarget": "udea-academica:build:dev"
             }
           },
-          "defaultConfiguration": "development"
+          "defaultConfiguration": "production"
         },
 
         "extract-i18n": {
