@@ -69,7 +69,7 @@ services:
       context: ./webapps/udea-academica
       dockerfile: Dockerfile
       args:
-        BUILD_CONFIG: production
+        BUILD_CONFIG: dev
     container_name: udea-frontend
     depends_on:
       - backend
